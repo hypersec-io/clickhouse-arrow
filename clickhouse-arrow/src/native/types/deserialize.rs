@@ -93,6 +93,17 @@ impl ClickHouseNativeDeserializer for Type {
                 Type::Object => {
                     object::ObjectDeserializer::read_prefix(self, reader, state).await?;
                 }
+                // DFE Fork: New types - no special prefix needed
+                Type::Variant(_)
+                | Type::Dynamic { .. }
+                | Type::Nested(_)
+                | Type::BFloat16
+                | Type::Time
+                | Type::Time64(_)
+                | Type::AggregateFunction { .. }
+                | Type::SimpleAggregateFunction { .. } => {
+                    // These types have no special prefix
+                }
             }
             Ok(())
         }
@@ -478,9 +489,65 @@ impl FromStr for Type {
                         Box::new(Type::from_str(args[1])?),
                     )
                 }
-                // Unsupported
+                // DFE Fork: New types
+                "Variant" => {
+                    let args = parse_variable_args(following)?;
+                    let variants: Vec<Type> = args
+                        .into_iter()
+                        .map(Type::from_str)
+                        .collect::<Result<_, _>>()?;
+                    Type::Variant(variants)
+                }
+                "Dynamic" => {
+                    // Dynamic can have optional max_types parameter
+                    if following.trim() == "()" {
+                        Type::Dynamic { max_types: None }
+                    } else {
+                        // Parse max_types=N if present
+                        let (args, count) = parse_fixed_args::<1>(following)?;
+                        let max_types = if count == 1 {
+                            let arg = args[0].trim();
+                            if let Some(n_str) = arg.strip_prefix("max_types=") {
+                                Some(n_str.parse().map_err(|e| {
+                                    Error::TypeParseError(format!(
+                                        "Invalid max_types value: {e}"
+                                    ))
+                                })?)
+                            } else {
+                                // Just a number
+                                Some(arg.parse().map_err(|e| {
+                                    Error::TypeParseError(format!(
+                                        "Invalid Dynamic argument: {e}"
+                                    ))
+                                })?)
+                            }
+                        } else {
+                            None
+                        };
+                        Type::Dynamic { max_types }
+                    }
+                }
                 "Nested" => {
-                    return Err(Error::TypeParseError("unsupported Nested type".to_string()));
+                    // Parse Nested(name1 Type1, name2 Type2, ...)
+                    let args = parse_variable_args(following)?;
+                    let fields: Vec<(String, Type)> = args
+                        .into_iter()
+                        .map(|arg| {
+                            let arg = arg.trim();
+                            // Split "name Type" - find first space
+                            if let Some(space_idx) = arg.find(' ') {
+                                let name = arg[..space_idx].to_string();
+                                let type_str = arg[space_idx + 1..].trim();
+                                let inner_type = Type::from_str(type_str)?;
+                                Ok((name, inner_type))
+                            } else {
+                                Err(Error::TypeParseError(format!(
+                                    "Invalid Nested field: '{arg}' (expected 'name Type')"
+                                )))
+                            }
+                        })
+                        .collect::<Result<_, _>>()?;
+                    Type::Nested(fields)
                 }
                 id => {
                     return Err(Error::TypeParseError(format!(
@@ -518,6 +585,8 @@ impl FromStr for Type {
             "Polygon" => Type::Polygon,
             "MultiPolygon" => Type::MultiPolygon,
             "Object" | "Json" | "OBJECT" | "JSON" => Type::Object,
+            // DFE Fork: Dynamic without parameters
+            "Dynamic" => Type::Dynamic { max_types: None },
             _ => {
                 return Err(Error::TypeParseError(format!("invalid type name: '{ident}'")));
             }

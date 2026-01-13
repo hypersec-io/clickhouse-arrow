@@ -13,7 +13,7 @@ use arrow::datatypes::*;
 use crate::formats::SerializerState;
 use crate::geo::normalize_geo_type;
 use crate::io::{ClickHouseBytesWrite, ClickHouseWrite};
-use crate::{Result, Type};
+use crate::{Error, Result, Type};
 
 /// Trait for serializing Arrow arrays into `ClickHouse`'s native protocol.
 ///
@@ -176,6 +176,19 @@ impl ClickHouseArrowSerializer for Type {
             }
             // Null stripped above
             Type::Nullable(_) => unreachable!(),
+            // DFE Fork: New types - Arrow serialization not yet implemented
+            Type::Variant(_)
+            | Type::Dynamic { .. }
+            | Type::Nested(_)
+            | Type::BFloat16
+            | Type::Time
+            | Type::Time64(_)
+            | Type::AggregateFunction { .. }
+            | Type::SimpleAggregateFunction { .. } => {
+                return Err(Error::Unimplemented(format!(
+                    "Arrow serialization not implemented for {base_type}"
+                )));
+            }
         }
 
         Ok(())
@@ -259,6 +272,19 @@ impl ClickHouseArrowSerializer for Type {
             }
             // Null stripped above
             Type::Nullable(_) => unreachable!(),
+            // DFE Fork: New types - Arrow serialization not yet implemented
+            Type::Variant(_)
+            | Type::Dynamic { .. }
+            | Type::Nested(_)
+            | Type::BFloat16
+            | Type::Time
+            | Type::Time64(_)
+            | Type::AggregateFunction { .. }
+            | Type::SimpleAggregateFunction { .. } => {
+                return Err(Error::Unimplemented(format!(
+                    "Arrow serialization not implemented for {base_type}"
+                )));
+            }
         }
 
         Ok(())

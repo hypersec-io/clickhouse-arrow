@@ -99,6 +99,10 @@ pub enum Error {
     #[error("Unsupported arrow type: {0}")]
     ArrowUnsupportedType(String),
 
+    // DFE Fork: Unimplemented feature
+    #[error("Unimplemented: {0}")]
+    Unimplemented(String),
+
     // RowBinary
     #[error(transparent)]
     BytesRead(#[from] bytes::TryGetError),

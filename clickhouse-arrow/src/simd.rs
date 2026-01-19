@@ -77,7 +77,7 @@ pub fn expand_null_bitmap(bitmap: &[u8], output: &mut [u8], len: usize) {
     #[cfg(all(target_arch = "x86_64", target_feature = "avx2"))]
     {
         // SAFETY: We've verified bounds above and AVX2 is available
-        unsafe { expand_null_bitmap_avx2(bitmap, output, len) }
+        unsafe { expand_null_bitmap_avx2(bitmap, output, len) };
     }
 
     #[cfg(all(target_arch = "x86_64", not(target_feature = "avx2")))]
@@ -85,16 +85,16 @@ pub fn expand_null_bitmap(bitmap: &[u8], output: &mut [u8], len: usize) {
         // Try runtime detection for AVX2
         if is_x86_feature_detected!("avx2") {
             // SAFETY: We've verified AVX2 is available at runtime
-            unsafe { expand_null_bitmap_avx2(bitmap, output, len) }
+            unsafe { expand_null_bitmap_avx2(bitmap, output, len) };
         } else {
-            expand_null_bitmap_scalar(bitmap, output, len)
+            expand_null_bitmap_scalar(bitmap, output, len);
         }
     }
 
     #[cfg(all(target_arch = "aarch64", target_feature = "neon"))]
     {
         // SAFETY: NEON is available on this platform
-        unsafe { expand_null_bitmap_neon(bitmap, output, len) }
+        unsafe { expand_null_bitmap_neon(bitmap, output, len) };
     }
 
     #[cfg(not(any(
@@ -103,7 +103,7 @@ pub fn expand_null_bitmap(bitmap: &[u8], output: &mut [u8], len: usize) {
         all(target_arch = "aarch64", target_feature = "neon")
     )))]
     {
-        expand_null_bitmap_scalar(bitmap, output, len)
+        expand_null_bitmap_scalar(bitmap, output, len);
     }
 }
 

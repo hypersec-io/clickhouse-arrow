@@ -113,7 +113,8 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: lcov.info
-        fail_ci_if_error: true
+        # Set to false until CODECOV_TOKEN is configured in repo secrets
+        fail_ci_if_error: false
         disable_telem: true
 
   # Summary job that branch protection can depend on

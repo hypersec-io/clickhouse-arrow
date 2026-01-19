@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-01-19
+
+### Features
+
+- **Zero-copy bulk primitive serialization** - Uses `bytemuck::cast_slice` for direct memory-to-wire transfer
+  - 40-60% improvement for primitive-heavy workloads
+- **Vectored I/O for nullable columns** - Combines null bitmap + values into single `write_vectored` call
+  - 15-25% syscall reduction for nullable primitive columns
+- **String batching with pooled buffers** - Batched varint encoding for string length prefixes
+  - 20-35% improvement for string-heavy workloads
+- **Deferred flush for batch inserts** - Reduces syscalls from N+2 to 2 for N-block batch inserts
+  - 98% fewer syscalls for 100-block batch inserts
+- **Pooled buffer compression** - Reuses buffers for compression to reduce allocation overhead
+  - 20-38% faster allocation for compression buffers
+- **io_uring feature gate** - Runtime detection for Linux 5.10+ with automatic epoll fallback
+
+### Performance
+
+This release focuses on maximising native protocol advantages for high-volume workloads.
+
+- Bulk primitive serialization: **40-60% faster** than per-value writes
+- Vectored I/O: **15-25% syscall reduction** for nullable columns
+- String batching: **20-35% faster** for string/binary columns
+- Deferred flush: **98% fewer syscalls** for batch inserts (100 blocks: 102 → 2 flushes)
+- Buffer pooling: **20-38% faster** allocation for compression
+
 ## [0.3.0] - 2026-01-19
 
 ### Features

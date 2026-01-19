@@ -1,4 +1,4 @@
-//! SIMD-accelerated operations for hot path optimizations.
+//! SIMD-accelerated operations for hot path performance.
 //!
 //! This module provides platform-specific SIMD implementations for performance-critical
 //! operations like null bitmap expansion, endian conversion, and bulk data processing.
@@ -29,7 +29,7 @@
 //! # Usage
 //!
 //! Most users don't need to use this module directly - the serialization layer
-//! uses these optimizations automatically. However, for custom implementations:
+//! uses these functions automatically. For custom implementations:
 //!
 //! ```rust
 //! use clickhouse_arrow::simd::{expand_null_bitmap, PooledBuffer, BUFFER_POOL};

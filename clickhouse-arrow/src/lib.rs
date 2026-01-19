@@ -231,6 +231,8 @@ pub mod spawn;
 pub mod telemetry;
 #[cfg(any(feature = "test-utils", feature = "tmpfs-size"))]
 pub mod test_utils;
+#[cfg(all(target_os = "linux", feature = "io-uring"))]
+pub mod io_uring;
 
 #[cfg(feature = "derive")]
 /// Derive macro for the [Row] trait.

@@ -470,6 +470,14 @@ impl<T: ClientFormat> InternalConn<T> {
         Ok(())
     }
 
+    /// Sends insert data to `ClickHouse`.
+    ///
+    /// # v0.4.0 Optimisation: Deferred Flush
+    ///
+    /// For batch inserts (`InsertState::Batch`), we use `send_data_no_flush` for all
+    /// blocks and only flush once at the end via the delimiter. This reduces syscalls:
+    /// - Before: N blocks = N+2 flushes (1 per block + query + delimiter)
+    /// - After: N blocks = 2 flushes (query + delimiter with final flush)
     #[instrument(skip_all, fields(clickhouse.query.id = %qid), err)]
     async fn send_insert<W: ClickHouseWrite>(
         &self,
@@ -486,12 +494,24 @@ impl<T: ClientFormat> InternalConn<T> {
                 self.send_delimiter(writer, qid).await?;
             }
             InsertState::Batch(data) => {
+                // v0.4.0: Use deferred flush for batch inserts
+                // Write all blocks without flushing, then flush once with delimiter
                 if !data.is_empty() {
+                    let block_count = data.len();
+                    trace!({ ATT_QID } = %qid, blocks = block_count, "Batch insert with deferred flush");
                     for block in data {
-                        Writer::send_data::<T>(writer, block, qid, header, revision, self.metadata)
-                            .await?;
+                        Writer::send_data_no_flush::<T>(
+                            writer,
+                            block,
+                            qid,
+                            header,
+                            revision,
+                            self.metadata,
+                        )
+                        .await?;
                     }
                 }
+                // Delimiter includes the final flush for all accumulated data
                 self.send_delimiter(writer, qid).await?;
             }
         }
@@ -500,6 +520,8 @@ impl<T: ClientFormat> InternalConn<T> {
     }
 
     async fn send_delimiter<W: ClickHouseWrite>(&self, writer: &mut W, qid: Qid) -> Result<()> {
+        // The delimiter is an empty block that signals end of data.
+        // For batch inserts, this also serves as the single flush point for all blocks.
         Writer::send_data::<NativeFormat>(
             writer,
             Block { info: BlockInfo::default(), rows: 0, ..Default::default() },

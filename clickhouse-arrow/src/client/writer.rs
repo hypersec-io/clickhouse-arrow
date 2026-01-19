@@ -138,6 +138,31 @@ impl<W: ClickHouseWrite> Writer<W> {
         Ok(())
     }
 
+    /// Sends data block without flushing. Used for batch inserts to defer flush until
+    /// all blocks are written, reducing syscalls from N+2 to 2 for N blocks.
+    ///
+    /// # v0.4.0 Optimisation
+    ///
+    /// This is part of the deferred flush optimisation. For batch inserts:
+    /// - Before: 100 blocks = 102 flushes (1 per block + query + delimiter)
+    /// - After: 100 blocks = 2 flushes (query + final flush after all blocks)
+    ///
+    /// Caller must call `flush()` after all blocks are sent.
+    pub(super) async fn send_data_no_flush<T: ClientFormat>(
+        writer: &mut W,
+        data: T::Data,
+        qid: Qid,
+        header: Option<&[(String, Type)]>,
+        revision: u64,
+        metadata: ClientMetadata,
+    ) -> Result<()> {
+        writer.write_var_uint(ClientPacketId::Data as u64).await?;
+        writer.write_string("").await?; // Table name
+        T::write(writer, data, qid, header, revision, metadata).await?;
+        // No flush - caller is responsible for flushing after batch complete
+        Ok(())
+    }
+
     pub(super) async fn send_addendum(
         writer: &mut W,
         revision: u64,

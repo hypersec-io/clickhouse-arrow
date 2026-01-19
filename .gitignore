@@ -69,5 +69,6 @@ ai/
 .claude/
 STATE.md
 TODO.md
+DESIGN.md
 CLAUDE.md
 .envrc

@@ -49,6 +49,8 @@ rust_decimal = ["dep:rust_decimal"]
 jemalloc = ["dep:tikv-jemallocator"]
 # Use mimalloc allocator (good for mixed workloads, better security hardening)
 mimalloc = ["dep:mimalloc"]
+# Enable io_uring for Linux 5.10+ with runtime detection and epoll fallback
+io-uring = ["dep:tokio-uring", "dep:libc"]
 
 # -- CI --
 # Enable all features for CI testing (excludes mutually exclusive allocators)
@@ -124,7 +126,9 @@ serde = { version = "1", features = ["derive"], optional = true }
 serde_json = { version = "1", optional = true }
 testcontainers = { version = ">=0.26", optional = true }
 tikv-jemallocator = { version = ">=0.6", optional = true }
+libc = { version = "0.2", optional = true }
 mimalloc = { version = ">=0.1.48", optional = true }
+tokio-uring = { version = "0.5", optional = true }
 tracing-subscriber = { version = ">=0.3", features = ["fmt", "env-filter"], optional = true }
 ureq = { version = "3", features = ["rustls", "gzip", "json"], optional = true }
 

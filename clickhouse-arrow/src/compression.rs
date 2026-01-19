@@ -103,6 +103,50 @@ pub(crate) async fn compress_data_sync<W: ClickHouseWrite>(
     Ok(())
 }
 
+/// Compresses data from a pooled buffer and writes to the `ClickHouse` protocol.
+///
+/// # v0.4.0 Optimisation
+///
+/// This function accepts a `PooledBuffer` which is automatically returned to the
+/// buffer pool when dropped, reducing allocation overhead for high-throughput workloads.
+///
+/// The `ClickHouse` compression format requires knowing sizes upfront (for the header),
+/// so true streaming compression isn't possible. However, using pooled buffers
+/// significantly reduces allocation pressure compared to per-batch allocations.
+#[expect(clippy::cast_possible_truncation)]
+pub(crate) async fn compress_data_pooled<W: ClickHouseWrite>(
+    writer: &mut W,
+    raw: crate::simd::PooledBuffer,
+    compression: CompressionMethod,
+) -> Result<()> {
+    let decompressed_size = raw.len();
+    let mut out = match compression {
+        // ZSTD with default compression level (1)
+        CompressionMethod::ZSTD => zstd::bulk::compress(&raw, 1)
+            .map_err(|e| Error::SerializeError(format!("ZSTD compress error: {e}")))?,
+        // LZ4
+        CompressionMethod::LZ4 => lz4_flex::compress(&raw),
+        // None
+        CompressionMethod::None => return Ok(()),
+    };
+
+    // Drop the input buffer early to return it to the pool
+    drop(raw);
+
+    let mut new_out = Vec::with_capacity(out.len() + 13);
+    new_out.push(compression.byte());
+    new_out.extend_from_slice(&(out.len() as u32 + 9).to_le_bytes()[..]);
+    new_out.extend_from_slice(&(decompressed_size as u32).to_le_bytes()[..]);
+    new_out.append(&mut out);
+
+    let hash = cityhash_rs::cityhash_102_128(&new_out[..]);
+    writer.write_u64_le((hash >> 64) as u64).await?;
+    writer.write_u64_le(hash as u64).await?;
+    writer.write_all(&new_out[..]).await?;
+
+    Ok(())
+}
+
 /// Reads and decompresses a single compression chunk.
 ///
 /// Reads the chunk header (checksum + compression metadata), validates the checksum,

@@ -1,16 +1,16 @@
 use arrow::array::RecordBatch;
 use arrow::datatypes::SchemaRef;
-use bytes::BytesMut;
 
 use super::DeserializerState;
 use super::protocol_data::{EmptyBlock, ProtocolData};
 use crate::Type;
 use crate::arrow::ArrowDeserializerState;
-use crate::compression::{DecompressionReader, compress_data_sync};
+use crate::compression::{DecompressionReader, compress_data_pooled};
 use crate::connection::ClientMetadata;
 use crate::io::{ClickHouseRead, ClickHouseWrite};
 use crate::native::protocol::CompressionMethod;
 use crate::prelude::*;
+use crate::simd::PooledBuffer;
 
 /// Marker trait for Arrow format.
 ///
@@ -35,6 +35,15 @@ impl super::sealed::ClientFormatImpl<RecordBatch> for ArrowFormat {
         state.deserializer().buffer.clear();
     }
 
+    /// Writes a `RecordBatch` to the `ClickHouse` protocol.
+    ///
+    /// # v0.4.0 Optimisation: Pooled Buffer Compression
+    ///
+    /// When compression is enabled, we use a pooled buffer instead of allocating
+    /// a new `BytesMut` for each batch. This reduces allocation overhead and memory
+    /// fragmentation for high-throughput insert workloads.
+    ///
+    /// The buffer is automatically returned to the pool when dropped.
     async fn write<W: ClickHouseWrite>(
         writer: &mut W,
         batch: RecordBatch,
@@ -50,11 +59,14 @@ impl super::sealed::ClientFormatImpl<RecordBatch> for ArrowFormat {
                 .await
                 .inspect_err(|error| error!(?error, { ATT_QID } = %qid, "serialize"))?;
         } else {
-            let mut raw = BytesMut::with_capacity(batch.get_array_memory_size());
+            // v0.4.0: Use pooled buffer to reduce allocation overhead
+            // The buffer is returned to pool automatically on drop
+            let capacity_hint = batch.get_array_memory_size();
+            let mut raw = PooledBuffer::with_capacity(capacity_hint);
             batch
-                .write(&mut raw, revision, header, metadata.arrow_options)
+                .write(raw.buffer_mut(), revision, header, metadata.arrow_options)
                 .inspect_err(|error| error!(?error, { ATT_QID } = %qid, "serialize"))?;
-            compress_data_sync(writer, raw.freeze(), metadata.compression)
+            compress_data_pooled(writer, raw, metadata.compression)
                 .await
                 .inspect_err(|error| error!(?error, { ATT_QID } = %qid, "compressing"))?;
         }

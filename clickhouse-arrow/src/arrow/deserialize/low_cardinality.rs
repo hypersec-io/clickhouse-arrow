@@ -140,7 +140,14 @@ pub(crate) async fn deserialize_async<R: ClickHouseRead>(
                 let mask_slice = &stack_mask[..dict_size];
                 inner
                     .strip_null()
-                    .deserialize_arrow_async(value_builder, reader, value_type, dict_size, mask_slice, rbuffer)
+                    .deserialize_arrow_async(
+                        value_builder,
+                        reader,
+                        value_type,
+                        dict_size,
+                        mask_slice,
+                        rbuffer,
+                    )
                     .await?
             } else {
                 // Heap-allocated path for large dictionaries
@@ -148,7 +155,14 @@ pub(crate) async fn deserialize_async<R: ClickHouseRead>(
                 mask[0] = 1;
                 inner
                     .strip_null()
-                    .deserialize_arrow_async(value_builder, reader, value_type, dict_size, &mask, rbuffer)
+                    .deserialize_arrow_async(
+                        value_builder,
+                        reader,
+                        value_type,
+                        dict_size,
+                        &mask,
+                        rbuffer,
+                    )
                     .await?
             }
         } else {
@@ -262,19 +276,34 @@ pub(crate) fn deserialize<R: ClickHouseBytesRead>(
                 stack_mask[0] = 1;
                 let mask_slice = &stack_mask[..dict_size];
                 inner_type.strip_null().deserialize_arrow(
-                    value_builder, reader, value_type, dict_size, mask_slice, rbuffer,
+                    value_builder,
+                    reader,
+                    value_type,
+                    dict_size,
+                    mask_slice,
+                    rbuffer,
                 )?
             } else {
                 // Heap-allocated path for large dictionaries
                 let mut mask = vec![0_u8; dict_size];
                 mask[0] = 1;
                 inner_type.strip_null().deserialize_arrow(
-                    value_builder, reader, value_type, dict_size, &mask, rbuffer,
+                    value_builder,
+                    reader,
+                    value_type,
+                    dict_size,
+                    &mask,
+                    rbuffer,
                 )?
             }
         } else {
             inner_type.strip_null().deserialize_arrow(
-                value_builder, reader, value_type, dict_size, &[], rbuffer,
+                value_builder,
+                reader,
+                value_type,
+                dict_size,
+                &[],
+                rbuffer,
             )?
         }
     // No dictionary found

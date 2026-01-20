@@ -14,8 +14,8 @@ use std::sync::Arc;
 use arrow::array::*;
 use arrow::datatypes::*;
 
-use crate::io::ClickHouseRead;
 use crate::Result;
+use crate::io::ClickHouseRead;
 
 /// End-of-granule marker (bit 62). When set, this is the final VarUInt in the offsets stream.
 pub(crate) const END_OF_GRANULE_FLAG: u64 = 1 << 62;
@@ -156,11 +156,7 @@ pub(crate) fn expand_sparse_array(
     offsets: &[usize],
     total_rows: usize,
 ) -> Result<ArrayRef> {
-    assert_eq!(
-        sparse_array.len(),
-        offsets.len(),
-        "Sparse array length must match offsets length"
-    );
+    assert_eq!(sparse_array.len(), offsets.len(), "Sparse array length must match offsets length");
 
     let data_type = sparse_array.data_type();
 
@@ -250,7 +246,8 @@ fn expand_string<O: OffsetSizeTrait>(
     total_rows: usize,
 ) -> ArrayRef {
     let sparse = sparse_array.as_any().downcast_ref::<GenericStringArray<O>>().unwrap();
-    let mut builder = GenericStringBuilder::<O>::with_capacity(total_rows, sparse.value_data().len());
+    let mut builder =
+        GenericStringBuilder::<O>::with_capacity(total_rows, sparse.value_data().len());
 
     let mut offset_idx = 0;
     for row in 0..total_rows {
@@ -276,7 +273,8 @@ fn expand_binary<O: OffsetSizeTrait>(
     total_rows: usize,
 ) -> ArrayRef {
     let sparse = sparse_array.as_any().downcast_ref::<GenericBinaryArray<O>>().unwrap();
-    let mut builder = GenericBinaryBuilder::<O>::with_capacity(total_rows, sparse.value_data().len());
+    let mut builder =
+        GenericBinaryBuilder::<O>::with_capacity(total_rows, sparse.value_data().len());
 
     let mut offset_idx = 0;
     for row in 0..total_rows {

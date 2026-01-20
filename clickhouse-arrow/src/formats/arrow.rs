@@ -14,7 +14,9 @@ use crate::simd::PooledBuffer;
 
 impl DataSize for RecordBatch {
     #[inline]
-    fn data_size(&self) -> usize { self.get_array_memory_size() }
+    fn data_size(&self) -> usize {
+        self.get_array_memory_size()
+    }
 }
 
 /// Marker trait for Arrow format.

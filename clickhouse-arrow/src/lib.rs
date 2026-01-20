@@ -217,13 +217,15 @@ mod errors;
 pub mod explain;
 mod flags;
 mod formats;
+#[cfg(feature = "http")]
+pub mod http;
 mod io;
+#[cfg(all(target_os = "linux", feature = "io-uring"))]
+pub mod io_uring;
 pub mod limits;
 pub mod native;
 #[cfg(feature = "pool")]
 mod pool;
-#[cfg(feature = "http")]
-pub mod http;
 pub mod prelude;
 mod query;
 mod schema;
@@ -233,8 +235,6 @@ pub mod spawn;
 pub mod telemetry;
 #[cfg(any(feature = "test-utils", feature = "tmpfs-size"))]
 pub mod test_utils;
-#[cfg(all(target_os = "linux", feature = "io-uring"))]
-pub mod io_uring;
 
 #[cfg(feature = "derive")]
 /// Derive macro for the [Row] trait.

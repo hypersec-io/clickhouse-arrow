@@ -75,7 +75,7 @@ pub(crate) mod sealed {
 /// Context maintained during deserialization
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct DeserializerState<T: Default = ()> {
-    pub(crate) options:      Option<ArrowOptions>,
+    pub(crate) options: Option<ArrowOptions>,
     pub(crate) deserializer: T,
 }
 
@@ -87,13 +87,15 @@ impl<T: Default> DeserializerState<T> {
     }
 
     #[must_use]
-    pub(crate) fn deserializer(&mut self) -> &mut T { &mut self.deserializer }
+    pub(crate) fn deserializer(&mut self) -> &mut T {
+        &mut self.deserializer
+    }
 }
 
 /// Context maintained during serialization
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct SerializerState<T: Default = ()> {
-    pub(crate) options:    Option<ArrowOptions>,
+    pub(crate) options: Option<ArrowOptions>,
     pub(crate) serializer: T,
 }
 
@@ -106,5 +108,7 @@ impl<T: Default> SerializerState<T> {
 
     #[expect(unused)]
     #[must_use]
-    pub(crate) fn serializer(&mut self) -> &mut T { &mut self.serializer }
+    pub(crate) fn serializer(&mut self) -> &mut T {
+        &mut self.serializer
+    }
 }

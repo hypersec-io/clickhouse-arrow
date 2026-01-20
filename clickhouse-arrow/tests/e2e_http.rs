@@ -16,11 +16,8 @@ use clickhouse_arrow::test_utils::ClickHouseContainer;
 pub mod common;
 pub mod tests;
 
-const TRACING_DIRECTIVES: &[(&str, &str)] = &[
-    ("testcontainers", "debug"),
-    ("clickhouse_arrow", "debug"),
-    ("reqwest", "debug"),
-];
+const TRACING_DIRECTIVES: &[(&str, &str)] =
+    &[("testcontainers", "debug"), ("clickhouse_arrow", "debug"), ("reqwest", "debug")];
 
 // Basic HTTP query test
 #[cfg(feature = "test-utils")]
@@ -66,13 +63,8 @@ fn test_schema() -> Arc<Schema> {
 fn test_batch() -> RecordBatch {
     let schema = test_schema();
     let id_array = Int64Array::from(vec![1, 2, 3, 4, 5]);
-    let name_array = StringArray::from(vec![
-        Some("Alice"),
-        Some("Bob"),
-        None,
-        Some("Dave"),
-        Some("Eve"),
-    ]);
+    let name_array =
+        StringArray::from(vec![Some("Alice"), Some("Bob"), None, Some("Dave"), Some("Eve")]);
 
     RecordBatch::try_new(schema, vec![Arc::new(id_array), Arc::new(name_array)]).unwrap()
 }
@@ -128,10 +120,8 @@ pub async fn test_http_insert(ch: Arc<ClickHouseContainer>) {
     client.insert("http_test_insert", batch).await.expect("Insert should succeed");
 
     // Verify data was inserted
-    let batches = client
-        .query("SELECT count(*) as cnt FROM http_test_insert")
-        .await
-        .expect("Count query");
+    let batches =
+        client.query("SELECT count(*) as cnt FROM http_test_insert").await.expect("Count query");
 
     assert_eq!(batches.len(), 1);
     let count_col = batches[0]
@@ -185,16 +175,10 @@ pub async fn test_http_round_trip(ch: Arc<ClickHouseContainer>) {
     assert_eq!(result.num_rows(), original_batch.num_rows());
 
     // Verify id column
-    let result_ids = result
-        .column(0)
-        .as_any()
-        .downcast_ref::<Int64Array>()
-        .expect("id column should be Int64");
-    let original_ids = original_batch
-        .column(0)
-        .as_any()
-        .downcast_ref::<Int64Array>()
-        .expect("id column");
+    let result_ids =
+        result.column(0).as_any().downcast_ref::<Int64Array>().expect("id column should be Int64");
+    let original_ids =
+        original_batch.column(0).as_any().downcast_ref::<Int64Array>().expect("id column");
 
     for i in 0..result.num_rows() {
         assert_eq!(result_ids.value(i), original_ids.value(i), "id mismatch at row {i}");
@@ -249,12 +233,7 @@ pub async fn test_http_insert_batches(ch: Arc<ClickHouseContainer>) {
         Arc::clone(&schema),
         vec![
             Arc::new(Int64Array::from(vec![7, 8, 9, 10])),
-            Arc::new(StringArray::from(vec![
-                Some("G"),
-                Some("H"),
-                Some("I"),
-                Some("J"),
-            ])),
+            Arc::new(StringArray::from(vec![Some("G"), Some("H"), Some("I"), Some("J")])),
         ],
     )
     .unwrap();
@@ -266,10 +245,8 @@ pub async fn test_http_insert_batches(ch: Arc<ClickHouseContainer>) {
         .expect("Insert batches should succeed");
 
     // Verify total count
-    let batches = client
-        .query("SELECT count(*) as cnt FROM http_test_batches")
-        .await
-        .expect("Count query");
+    let batches =
+        client.query("SELECT count(*) as cnt FROM http_test_batches").await.expect("Count query");
 
     let count_col = batches[0]
         .column(0)
@@ -355,10 +332,8 @@ pub async fn test_http_large_data(ch: Arc<ClickHouseContainer>) {
     client.insert("http_test_large", batch).await.expect("Insert large batch");
 
     // Verify count
-    let batches = client
-        .query("SELECT count(*) as cnt FROM http_test_large")
-        .await
-        .expect("Count query");
+    let batches =
+        client.query("SELECT count(*) as cnt FROM http_test_large").await.expect("Count query");
 
     let count_col = batches[0]
         .column(0)
@@ -375,11 +350,7 @@ pub async fn test_http_large_data(ch: Arc<ClickHouseContainer>) {
 
     assert_eq!(batches[0].num_rows(), 100);
 
-    let result_ids = batches[0]
-        .column(0)
-        .as_any()
-        .downcast_ref::<Int64Array>()
-        .expect("id column");
+    let result_ids = batches[0].column(0).as_any().downcast_ref::<Int64Array>().expect("id column");
     assert_eq!(result_ids.value(0), 0);
     assert_eq!(result_ids.value(99), 99);
 
@@ -422,11 +393,7 @@ pub async fn test_http_types(ch: Arc<ClickHouseContainer>) {
         Field::new("name", DataType::Utf8, false),
         Field::new("optional_name", DataType::Utf8, true),
         Field::new("created_date", DataType::Date32, false),
-        Field::new(
-            "created_at",
-            DataType::Timestamp(TimeUnit::Millisecond, None),
-            false,
-        ),
+        Field::new("created_at", DataType::Timestamp(TimeUnit::Millisecond, None), false),
     ]));
 
     let arrays: Vec<ArrayRef> = vec![
@@ -451,7 +418,9 @@ pub async fn test_http_types(ch: Arc<ClickHouseContainer>) {
 
     // Query back and verify
     let batches = client
-        .query("SELECT id, big_id, flag, ratio, name, optional_name FROM http_test_types ORDER BY id")
+        .query(
+            "SELECT id, big_id, flag, ratio, name, optional_name FROM http_test_types ORDER BY id",
+        )
         .await
         .expect("Query types");
 
@@ -459,11 +428,7 @@ pub async fn test_http_types(ch: Arc<ClickHouseContainer>) {
     assert_eq!(batches[0].num_rows(), 3);
 
     // Verify Int32 column
-    let id_col = batches[0]
-        .column(0)
-        .as_any()
-        .downcast_ref::<Int32Array>()
-        .expect("id column");
+    let id_col = batches[0].column(0).as_any().downcast_ref::<Int32Array>().expect("id column");
     assert_eq!(id_col.value(0), 1);
     assert_eq!(id_col.value(2), 3);
 

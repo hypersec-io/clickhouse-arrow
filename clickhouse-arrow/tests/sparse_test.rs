@@ -55,19 +55,12 @@ async fn test_sparse_column_mergetree() {
         // Only 5% of rows have non-default sparse values
         // Use (i + 1) * 100 so that i=0 produces 100 (non-zero)
         let sparse_int = if i % 20 == 0 { (i + 1) * 100 } else { 0 };
-        let sparse_string = if i % 25 == 0 {
-            format!("'value_{i}'")
-        } else {
-            "''".to_string()
-        };
+        let sparse_string = if i % 25 == 0 { format!("'value_{i}'") } else { "''".to_string() };
         values.push(format!("({i}, {}, {sparse_int}, {sparse_string})", i * 10));
     }
     insert_sql.push_str(&values.join(", "));
 
-    client
-        .execute(&insert_sql, None)
-        .await
-        .expect("Failed to insert data");
+    client.execute(&insert_sql, None).await.expect("Failed to insert data");
 
     // Force a merge to ensure data is written to parts (sparse is determined per-part)
     client
@@ -93,9 +86,8 @@ async fn test_sparse_column_mergetree() {
         total_rows += batch.num_rows();
 
         // Count non-default values to verify data integrity
-        let sparse_int_col = batch
-            .column_by_name("sparse_int")
-            .expect("sparse_int column not found");
+        let sparse_int_col =
+            batch.column_by_name("sparse_int").expect("sparse_int column not found");
         let sparse_int_array = sparse_int_col.as_primitive::<arrow::datatypes::Int64Type>();
         for i in 0..sparse_int_array.len() {
             if sparse_int_array.value(i) != 0 {
@@ -103,9 +95,8 @@ async fn test_sparse_column_mergetree() {
             }
         }
 
-        let sparse_string_col = batch
-            .column_by_name("sparse_string")
-            .expect("sparse_string column not found");
+        let sparse_string_col =
+            batch.column_by_name("sparse_string").expect("sparse_string column not found");
         let sparse_string_array = sparse_string_col
             .as_any()
             .downcast_ref::<arrow::array::StringArray>()
@@ -128,9 +119,8 @@ async fn test_sparse_column_mergetree() {
             }
         } else {
             // If it's binary, handle that
-            if let Some(arr) = sparse_string_col
-                .as_any()
-                .downcast_ref::<arrow::array::BinaryArray>()
+            if let Some(arr) =
+                sparse_string_col.as_any().downcast_ref::<arrow::array::BinaryArray>()
             {
                 for i in 0..arr.len() {
                     if !arr.value(i).is_empty() {
@@ -142,20 +132,14 @@ async fn test_sparse_column_mergetree() {
     }
 
     assert_eq!(total_rows, 1000, "Expected 1000 rows");
-    assert_eq!(
-        non_zero_sparse_int, 50,
-        "Expected 50 non-zero sparse_int values (every 20th row)"
-    );
+    assert_eq!(non_zero_sparse_int, 50, "Expected 50 non-zero sparse_int values (every 20th row)");
     assert_eq!(
         non_empty_sparse_string, 40,
         "Expected 40 non-empty sparse_string values (every 25th row)"
     );
 
     // Cleanup
-    client
-        .execute("DROP TABLE IF EXISTS sparse_mergetree_test", None)
-        .await
-        .unwrap();
+    client.execute("DROP TABLE IF EXISTS sparse_mergetree_test", None).await.unwrap();
 
     println!("MergeTree sparse column test passed!");
     println!("  Total rows: {total_rows}");
@@ -264,16 +248,8 @@ async fn test_sparse_wide_variety_types() {
         let uint64 = if i % 45 == 0 { (i + 1) as u64 } else { 0 };
         let float32 = if i % 50 == 0 { (i as f32) + 0.5 } else { 0.0 };
         let float64 = if i % 55 == 0 { (i as f64) + 0.5 } else { 0.0 };
-        let string = if i % 60 == 0 {
-            format!("'str_{i}'")
-        } else {
-            "''".to_string()
-        };
-        let fixed = if i % 65 == 0 {
-            format!("'fix{:04}'", i % 10000)
-        } else {
-            "''".to_string()
-        };
+        let string = if i % 60 == 0 { format!("'str_{i}'") } else { "''".to_string() };
+        let fixed = if i % 65 == 0 { format!("'fix{:04}'", i % 10000) } else { "''".to_string() };
         let date = if i % 70 == 0 {
             format!("'2024-01-{:02}'", (i % 28) + 1)
         } else {
@@ -292,10 +268,7 @@ async fn test_sparse_wide_variety_types() {
     }
     insert_sql.push_str(&values.join(", "));
 
-    client
-        .execute(&insert_sql, None)
-        .await
-        .expect("Failed to insert data");
+    client.execute(&insert_sql, None).await.expect("Failed to insert data");
 
     // Force merge to trigger sparse serialization
     client
@@ -426,7 +399,8 @@ async fn test_sparse_wide_variety_types() {
                         }
                     }
                 }
-                arrow::datatypes::DataType::Binary | arrow::datatypes::DataType::FixedSizeBinary(_) => {
+                arrow::datatypes::DataType::Binary
+                | arrow::datatypes::DataType::FixedSizeBinary(_) => {
                     if let Some(arr) = col.as_any().downcast_ref::<arrow::array::BinaryArray>() {
                         for i in 0..arr.len() {
                             if !arr.value(i).is_empty() {
@@ -465,20 +439,20 @@ async fn test_sparse_wide_variety_types() {
     // For n rows, count of non-defaults = ceil(n / interval)
     // But since we use i % interval == 0 starting from 0, it's (n-1)/interval + 1
     let expected = [
-        ("sparse_int8", 200),      // every 10th: 0, 10, 20... 1990 = 200
-        ("sparse_int16", 134),     // every 15th: 0, 15, 30... 1995 = 134
-        ("sparse_int32", 100),     // every 20th: 0, 20, 40... 1980 = 100
-        ("sparse_int64", 80),      // every 25th: 0, 25, 50... 1975 = 80
-        ("sparse_uint8", 67),      // every 30th
-        ("sparse_uint16", 58),     // every 35th
-        ("sparse_uint32", 50),     // every 40th
-        ("sparse_uint64", 45),     // every 45th
-        ("sparse_float32", 40),    // every 50th
-        ("sparse_float64", 37),    // every 55th
-        ("sparse_string", 34),     // every 60th
-        ("sparse_fixed", 31),      // every 65th
-        ("sparse_date", 29),       // every 70th
-        ("sparse_datetime", 27),   // every 75th
+        ("sparse_int8", 200),    // every 10th: 0, 10, 20... 1990 = 200
+        ("sparse_int16", 134),   // every 15th: 0, 15, 30... 1995 = 134
+        ("sparse_int32", 100),   // every 20th: 0, 20, 40... 1980 = 100
+        ("sparse_int64", 80),    // every 25th: 0, 25, 50... 1975 = 80
+        ("sparse_uint8", 67),    // every 30th
+        ("sparse_uint16", 58),   // every 35th
+        ("sparse_uint32", 50),   // every 40th
+        ("sparse_uint64", 45),   // every 45th
+        ("sparse_float32", 40),  // every 50th
+        ("sparse_float64", 37),  // every 55th
+        ("sparse_string", 34),   // every 60th
+        ("sparse_fixed", 31),    // every 65th
+        ("sparse_date", 29),     // every 70th
+        ("sparse_datetime", 27), // every 75th
     ];
 
     println!("\nSparse variety test results:");
@@ -494,10 +468,7 @@ async fn test_sparse_wide_variety_types() {
     }
 
     // Cleanup
-    client
-        .execute("DROP TABLE IF EXISTS sparse_variety_test", None)
-        .await
-        .unwrap();
+    client.execute("DROP TABLE IF EXISTS sparse_variety_test", None).await.unwrap();
 
     println!("Wide variety sparse test passed!");
 }
@@ -581,13 +552,10 @@ async fn test_sparse_edge_cases() {
         .expect("Failed to optimize table");
 
     // Query and verify
-    let mut stream = Client::<ArrowFormat>::query(
-        &client,
-        "SELECT * FROM sparse_edge_test ORDER BY id",
-        None,
-    )
-    .await
-    .expect("Failed to query");
+    let mut stream =
+        Client::<ArrowFormat>::query(&client, "SELECT * FROM sparse_edge_test ORDER BY id", None)
+            .await
+            .expect("Failed to query");
 
     let mut total_read = 0;
     let mut counts = std::collections::HashMap::new();
@@ -615,12 +583,12 @@ async fn test_sparse_edge_cases() {
 
     println!("\nSparse edge cases test results:");
     println!("  Total rows: {total_read}");
-    println!("  consecutive_start: {} (expected 10)", counts.get("consecutive_start").unwrap_or(&0));
-    println!("  consecutive_end: {} (expected 10)", counts.get("consecutive_end").unwrap_or(&0));
     println!(
-        "  dense_col: {} (expected ~3334)",
-        counts.get("dense_col").unwrap_or(&0)
+        "  consecutive_start: {} (expected 10)",
+        counts.get("consecutive_start").unwrap_or(&0)
     );
+    println!("  consecutive_end: {} (expected 10)", counts.get("consecutive_end").unwrap_or(&0));
+    println!("  dense_col: {} (expected ~3334)", counts.get("dense_col").unwrap_or(&0));
     println!("  sparse_5pct: {} (expected 500)", counts.get("sparse_5pct").unwrap_or(&0));
 
     // Verify counts
@@ -636,10 +604,7 @@ async fn test_sparse_edge_cases() {
     assert_eq!(sparse_count, 500, "sparse_5pct count: {sparse_count}");
 
     // Cleanup
-    client
-        .execute("DROP TABLE IF EXISTS sparse_edge_test", None)
-        .await
-        .unwrap();
+    client.execute("DROP TABLE IF EXISTS sparse_edge_test", None).await.unwrap();
 
     println!("Edge cases sparse test passed!");
 }
@@ -686,9 +651,9 @@ async fn test_sparse_nullable_columns() {
     let mut values = Vec::new();
     for i in 0..5000 {
         let int_val = match i % 100 {
-            0 => "NULL".to_string(),                    // 1% NULL
-            1..=5 => format!("{}", (i + 1) * 10),       // 5% non-null values
-            _ => "NULL".to_string(),                     // rest NULL (sparse storage for nullables)
+            0 => "NULL".to_string(),              // 1% NULL
+            1..=5 => format!("{}", (i + 1) * 10), // 5% non-null values
+            _ => "NULL".to_string(),              // rest NULL (sparse storage for nullables)
         };
 
         let str_val = match i % 50 {
@@ -771,10 +736,7 @@ async fn test_sparse_nullable_columns() {
     );
 
     // Cleanup
-    client
-        .execute("DROP TABLE IF EXISTS sparse_nullable_test", None)
-        .await
-        .unwrap();
+    client.execute("DROP TABLE IF EXISTS sparse_nullable_test", None).await.unwrap();
 
     println!("Nullable sparse test passed!");
 }
@@ -832,11 +794,7 @@ async fn test_sparse_large_scale() {
         let b = if i % 250 == 0 { (i + 1) as i64 } else { 0 };
 
         // Sparse C: every 200th row
-        let c = if i % 200 == 0 {
-            format!("'val_{i}'")
-        } else {
-            "''".to_string()
-        };
+        let c = if i % 200 == 0 { format!("'val_{i}'") } else { "''".to_string() };
 
         values.push(format!("({i}, {ultra}, {a}, {b}, {c})"));
     }
@@ -856,13 +814,10 @@ async fn test_sparse_large_scale() {
         .expect("Failed to optimize table");
 
     // Query and verify
-    let mut stream = Client::<ArrowFormat>::query(
-        &client,
-        "SELECT * FROM sparse_large_test ORDER BY id",
-        None,
-    )
-    .await
-    .expect("Failed to query");
+    let mut stream =
+        Client::<ArrowFormat>::query(&client, "SELECT * FROM sparse_large_test ORDER BY id", None)
+            .await
+            .expect("Failed to query");
 
     let mut total_read = 0;
     let mut counts = std::collections::HashMap::new();
@@ -920,10 +875,7 @@ async fn test_sparse_large_scale() {
     assert_eq!(*counts.get("sparse_c").unwrap_or(&0), 500);
 
     // Cleanup
-    client
-        .execute("DROP TABLE IF EXISTS sparse_large_test", None)
-        .await
-        .unwrap();
+    client.execute("DROP TABLE IF EXISTS sparse_large_test", None).await.unwrap();
 
     println!("Large-scale sparse test passed!");
 }

@@ -45,9 +45,9 @@ impl From<ArrowFfiError> for PyErr {
 /// Uses PyArrow's `RecordBatch._import_from_c(array_ptr, schema_ptr)` method.
 pub(crate) fn record_batch_to_pyarrow(py: Python<'_>, batch: &RecordBatch) -> PyResult<PyObject> {
     // Import PyArrow
-    let pyarrow = py.import("pyarrow").map_err(|e| {
-        ArrowFfiError::PyArrowImport(format!("Failed to import pyarrow: {e}"))
-    })?;
+    let pyarrow = py
+        .import("pyarrow")
+        .map_err(|e| ArrowFfiError::PyArrowImport(format!("Failed to import pyarrow: {e}")))?;
 
     // Convert RecordBatch to StructArray for FFI export
     let struct_array: StructArray = batch.clone().into();
@@ -71,7 +71,10 @@ pub(crate) fn record_batch_to_pyarrow(py: Python<'_>, batch: &RecordBatch) -> Py
 /// Import a `RecordBatch` from a PyArrow object via the C Data Interface.
 ///
 /// Uses PyArrow's `_export_to_c(array_ptr, schema_ptr)` method.
-pub(crate) fn record_batch_from_pyarrow(_py: Python<'_>, obj: &Bound<'_, PyAny>) -> PyResult<RecordBatch> {
+pub(crate) fn record_batch_from_pyarrow(
+    _py: Python<'_>,
+    obj: &Bound<'_, PyAny>,
+) -> PyResult<RecordBatch> {
     // Allocate FFI structs for PyArrow to write into
     let mut ffi_array = FFI_ArrowArray::empty();
     let mut ffi_schema = FFI_ArrowSchema::empty();
@@ -85,9 +88,8 @@ pub(crate) fn record_batch_from_pyarrow(_py: Python<'_>, obj: &Bound<'_, PyAny>)
 
     // Convert to Arrow data
     // SAFETY: PyArrow has written valid FFI structs to our pointers
-    let array_data = unsafe {
-        arrow::ffi::from_ffi(ffi_array, &ffi_schema).map_err(ArrowFfiError::Arrow)?
-    };
+    let array_data =
+        unsafe { arrow::ffi::from_ffi(ffi_array, &ffi_schema).map_err(ArrowFfiError::Arrow)? };
     let struct_array = StructArray::from(array_data);
 
     Ok(RecordBatch::from(struct_array))

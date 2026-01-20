@@ -98,16 +98,10 @@ macro_rules! ser_bulk {
 macro_rules! write_primitive_bulk {
     ($name:ident, $array_type:ty, $prim_type:ty) => {
         #[inline]
-        async fn $name<W: ClickHouseWrite>(
-            column: &ArrayRef,
-            writer: &mut W,
-        ) -> Result<()> {
-            let array = column
-                .as_any()
-                .downcast_ref::<$array_type>()
-                .ok_or_else(|| {
-                    Error::ArrowSerialize(concat!("Expected ", stringify!($array_type)).into())
-                })?;
+        async fn $name<W: ClickHouseWrite>(column: &ArrayRef, writer: &mut W) -> Result<()> {
+            let array = column.as_any().downcast_ref::<$array_type>().ok_or_else(|| {
+                Error::ArrowSerialize(concat!("Expected ", stringify!($array_type)).into())
+            })?;
             ser_bulk_async!(array, writer, $prim_type)
         }
     };
@@ -118,12 +112,9 @@ macro_rules! put_primitive_bulk {
     ($name:ident, $array_type:ty, $prim_type:ty) => {
         #[inline]
         fn $name<W: ClickHouseBytesWrite>(column: &ArrayRef, writer: &mut W) -> Result<()> {
-            let array = column
-                .as_any()
-                .downcast_ref::<$array_type>()
-                .ok_or_else(|| {
-                    Error::ArrowSerialize(concat!("Expected ", stringify!($array_type)).into())
-                })?;
+            let array = column.as_any().downcast_ref::<$array_type>().ok_or_else(|| {
+                Error::ArrowSerialize(concat!("Expected ", stringify!($array_type)).into())
+            })?;
             ser_bulk!(array, writer, $prim_type)
         }
     };
@@ -165,18 +156,11 @@ macro_rules! nullable_primitive_vectored {
             column: &ArrayRef,
             writer: &mut W,
         ) -> Result<()> {
-            let array = column
-                .as_any()
-                .downcast_ref::<$array_type>()
-                .ok_or_else(|| {
-                    Error::ArrowSerialize(concat!("Expected ", stringify!($array_type)).into())
-                })?;
+            let array = column.as_any().downcast_ref::<$array_type>().ok_or_else(|| {
+                Error::ArrowSerialize(concat!("Expected ", stringify!($array_type)).into())
+            })?;
             let values: &[$prim_type] = array.values();
-            let bytes: &[u8] = if values.is_empty() {
-                &[]
-            } else {
-                bytemuck::cast_slice(values)
-            };
+            let bytes: &[u8] = if values.is_empty() { &[] } else { bytemuck::cast_slice(values) };
             super::null::write_nullable_vectored(type_hint, writer, column, bytes).await
         }
     };

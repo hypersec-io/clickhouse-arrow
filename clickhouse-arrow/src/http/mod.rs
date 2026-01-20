@@ -27,4 +27,4 @@ mod config;
 pub mod escape;
 
 pub use client::HttpClient;
-pub use config::{HttpOptions, DEFAULT_TIMEOUT_SECS};
+pub use config::{DEFAULT_TIMEOUT_SECS, HttpOptions};

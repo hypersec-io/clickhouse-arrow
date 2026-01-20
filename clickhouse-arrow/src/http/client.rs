@@ -6,13 +6,13 @@
 
 use arrow::array::RecordBatch;
 use bytes::Bytes;
-use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
-use tracing::{debug, instrument, trace_span, Instrument};
+use reqwest::header::{CONTENT_TYPE, HeaderMap, HeaderValue};
+use tracing::{Instrument, debug, instrument, trace_span};
 
 use super::arrow_stream::{deserialize_batches, serialize_batch};
 use super::config::HttpOptions;
-use crate::errors::Result;
 use crate::Error;
+use crate::errors::Result;
 
 /// HTTP client using ClickHouse's ArrowStream format.
 ///
@@ -20,16 +20,14 @@ use crate::Error;
 /// Simpler but slightly higher latency than native protocol.
 #[derive(Debug, Clone)]
 pub struct HttpClient {
-    client:  reqwest::Client,
+    client: reqwest::Client,
     options: HttpOptions,
 }
 
 impl HttpClient {
     /// Create a new HTTP client.
     pub fn new(options: HttpOptions) -> Result<Self> {
-        let mut builder = reqwest::Client::builder()
-            .timeout(options.timeout)
-            .use_rustls_tls();
+        let mut builder = reqwest::Client::builder().timeout(options.timeout).use_rustls_tls();
 
         if options.enable_compression {
             builder = builder.gzip(true).zstd(true);
@@ -47,19 +45,22 @@ impl HttpClient {
         let mut headers = HeaderMap::new();
 
         if let Some(ref user) = self.options.user
-            && let Ok(value) = HeaderValue::from_str(user) {
-                drop(headers.insert("X-ClickHouse-User", value));
-            }
+            && let Ok(value) = HeaderValue::from_str(user)
+        {
+            drop(headers.insert("X-ClickHouse-User", value));
+        }
 
         if let Some(ref password) = self.options.password
-            && let Ok(value) = HeaderValue::from_str(password) {
-                drop(headers.insert("X-ClickHouse-Key", value));
-            }
+            && let Ok(value) = HeaderValue::from_str(password)
+        {
+            drop(headers.insert("X-ClickHouse-Key", value));
+        }
 
         if let Some(ref database) = self.options.database
-            && let Ok(value) = HeaderValue::from_str(database) {
-                drop(headers.insert("X-ClickHouse-Database", value));
-            }
+            && let Ok(value) = HeaderValue::from_str(database)
+        {
+            drop(headers.insert("X-ClickHouse-Database", value));
+        }
 
         headers
     }
@@ -230,9 +231,9 @@ fn serialize_batches(batches: &[RecordBatch]) -> Result<Bytes> {
         .map_err(|e| Error::ArrowSerialize(format!("Failed to create ArrowStream writer: {e}")))?;
 
     for batch in batches {
-        writer
-            .write(batch)
-            .map_err(|e| Error::ArrowSerialize(format!("Failed to write batch to ArrowStream: {e}")))?;
+        writer.write(batch).map_err(|e| {
+            Error::ArrowSerialize(format!("Failed to write batch to ArrowStream: {e}"))
+        })?;
     }
 
     writer

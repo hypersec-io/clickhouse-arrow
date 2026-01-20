@@ -50,7 +50,9 @@ async fn query_all(client: &ArrowClient, query: &str, qid: Qid) -> Vec<RecordBat
 }
 
 /// Count total rows across all batches
-fn count_rows(batches: &[RecordBatch]) -> usize { batches.iter().map(RecordBatch::num_rows).sum() }
+fn count_rows(batches: &[RecordBatch]) -> usize {
+    batches.iter().map(RecordBatch::num_rows).sum()
+}
 
 // =============================================================================
 // BFloat16 Tests

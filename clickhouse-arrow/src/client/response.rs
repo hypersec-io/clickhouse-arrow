@@ -44,7 +44,7 @@ pub(crate) fn handle_insert_response<T: ClientFormat>(
 #[pin_project::pin_project]
 pub struct ClickHouseResponse<T> {
     #[pin]
-    stream:           Pin<Box<dyn Stream<Item = Result<T>> + Send + 'static>>,
+    stream: Pin<Box<dyn Stream<Item = Result<T>> + Send + 'static>>,
     /// Receiver for the parallel EXPLAIN result, if configured.
     explain_receiver: Option<oneshot::Receiver<Result<ExplainResult>>>,
 }
@@ -84,7 +84,9 @@ impl<T> ClickHouseResponse<T> {
 
     /// Check if this response has an EXPLAIN result pending.
     #[must_use]
-    pub fn has_explain(&self) -> bool { self.explain_receiver.is_some() }
+    pub fn has_explain(&self) -> bool {
+        self.explain_receiver.is_some()
+    }
 
     /// Get the EXPLAIN result, if one was configured.
     ///

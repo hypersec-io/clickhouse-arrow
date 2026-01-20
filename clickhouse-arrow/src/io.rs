@@ -109,11 +109,8 @@ impl<T: AsyncWrite + Unpin + Send + Sync> ClickHouseWrite for T {
         let mut written = 0usize;
         while written < total {
             // Find first non-empty buffer and adjust slices
-            let mut remaining_bufs: Vec<IoSlice<'_>> = bufs
-                .iter()
-                .skip_while(|b| b.is_empty())
-                .map(|b| IoSlice::new(b))
-                .collect();
+            let mut remaining_bufs: Vec<IoSlice<'_>> =
+                bufs.iter().skip_while(|b| b.is_empty()).map(|b| IoSlice::new(b)).collect();
 
             if remaining_bufs.is_empty() {
                 break;

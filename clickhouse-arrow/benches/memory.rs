@@ -38,19 +38,19 @@ use self::common::{DISABLE_CLEANUP_ENV, TEST_DB_NAME, init, print_msg};
 #[derive(Debug, Clone)]
 struct MemoryStats {
     /// Arrow array memory size (actual heap usage)
-    arrow_memory_bytes:  usize,
+    arrow_memory_bytes: usize,
     /// Estimated wire format size
-    wire_bytes:          usize,
+    wire_bytes: usize,
     /// Number of rows
-    rows:                usize,
+    rows: usize,
     /// Number of columns
-    columns:             usize,
+    columns: usize,
     /// Bytes per row in Arrow format
     arrow_bytes_per_row: f64,
     /// Bytes per row in wire format
-    wire_bytes_per_row:  f64,
+    wire_bytes_per_row: f64,
     /// Memory amplification factor (Arrow / wire)
-    amplification:       f64,
+    amplification: f64,
 }
 
 impl MemoryStats {

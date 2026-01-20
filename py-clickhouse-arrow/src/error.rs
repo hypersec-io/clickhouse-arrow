@@ -88,9 +88,9 @@ impl From<ClickHouseErrorWrapper> for PyErr {
             | Error::Arrow(_) => QueryError::new_err(msg),
 
             // Serialisation errors
-            Error::SerializeError(_)
-            | Error::ArrowSerialize(_)
-            | Error::InsertArrowRetry(_) => SerializationError::new_err(msg),
+            Error::SerializeError(_) | Error::ArrowSerialize(_) | Error::InsertArrowRetry(_) => {
+                SerializationError::new_err(msg)
+            }
 
             // Server errors
             Error::ServerException(_) | Error::Server(_) => ServerError::new_err(msg),
@@ -111,10 +111,9 @@ impl From<ClickHouseErrorWrapper> for PyErr {
             | Error::Configuration(_) => ConfigurationError::new_err(msg),
 
             // Generic/other errors
-            Error::Client(_)
-            | Error::External(_)
-            | Error::Unknown(_)
-            | Error::Unimplemented(_) => ClickHouseError::new_err(msg),
+            Error::Client(_) | Error::External(_) | Error::Unknown(_) | Error::Unimplemented(_) => {
+                ClickHouseError::new_err(msg)
+            }
 
             // Catch-all for future variants (Error is #[non_exhaustive])
             _ => ClickHouseError::new_err(msg),

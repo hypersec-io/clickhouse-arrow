@@ -142,7 +142,10 @@ mod tests {
 
     #[test]
     fn test_escape_string_multiple_special() {
-        assert_eq!(escape_string("it's a 'test'\nwith\\special"), "it\\'s a \\'test\\'\\nwith\\\\special");
+        assert_eq!(
+            escape_string("it's a 'test'\nwith\\special"),
+            "it\\'s a \\'test\\'\\nwith\\\\special"
+        );
     }
 
     #[test]

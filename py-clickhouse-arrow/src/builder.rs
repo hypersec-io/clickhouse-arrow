@@ -49,9 +49,7 @@ impl PyClientBuilder {
     /// Create a new ClientBuilder with default configuration.
     #[new]
     fn new() -> Self {
-        Self {
-            inner: RustClientBuilder::new(),
-        }
+        Self { inner: RustClientBuilder::new() }
     }
 
     /// Set the ClickHouse server endpoint (host:port).
@@ -156,7 +154,7 @@ impl PyClientBuilder {
             _ => {
                 return Err(pyo3::exceptions::PyValueError::new_err(format!(
                     "Unknown compression method: '{method}'. Use 'none', 'lz4', or 'zstd'"
-                )))
+                )));
             }
         };
         self.inner = std::mem::take(&mut self.inner).with_compression(compression);

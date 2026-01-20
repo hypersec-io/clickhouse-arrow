@@ -10,8 +10,8 @@ use arrow::ipc::reader::StreamReader;
 use arrow::ipc::writer::StreamWriter;
 use bytes::Bytes;
 
-use crate::errors::Result;
 use crate::Error;
+use crate::errors::Result;
 
 /// Serialize a `RecordBatch` to `ArrowStream` IPC format.
 pub(super) fn serialize_batch(batch: &RecordBatch) -> Result<Bytes> {
@@ -39,13 +39,15 @@ pub(super) fn deserialize_batches(data: Bytes) -> Result<Vec<RecordBatch>> {
     }
 
     let cursor = Cursor::new(data);
-    let reader = StreamReader::try_new(cursor, None)
-        .map_err(|e| Error::ArrowDeserialize(format!("Failed to create ArrowStream reader: {e}")))?;
+    let reader = StreamReader::try_new(cursor, None).map_err(|e| {
+        Error::ArrowDeserialize(format!("Failed to create ArrowStream reader: {e}"))
+    })?;
 
     let mut batches = Vec::new();
     for batch_result in reader {
-        let batch = batch_result
-            .map_err(|e| Error::ArrowDeserialize(format!("Failed to read batch from ArrowStream: {e}")))?;
+        let batch = batch_result.map_err(|e| {
+            Error::ArrowDeserialize(format!("Failed to read batch from ArrowStream: {e}"))
+        })?;
         batches.push(batch);
     }
 
@@ -105,11 +107,7 @@ mod tests {
         assert_eq!(deserialized.len(), 1);
         assert_eq!(deserialized[0].num_rows(), 5);
 
-        let result_col = deserialized[0]
-            .column(0)
-            .as_any()
-            .downcast_ref::<StringArray>()
-            .unwrap();
+        let result_col = deserialized[0].column(0).as_any().downcast_ref::<StringArray>().unwrap();
         assert!(result_col.is_valid(0));
         assert!(result_col.is_null(1));
         assert!(result_col.is_valid(2));
@@ -160,10 +158,7 @@ mod tests {
 
         let batch = RecordBatch::try_new(
             schema,
-            vec![
-                Arc::new(Int64Array::from(ids)),
-                Arc::new(Float64Array::from(values)),
-            ],
+            vec![Arc::new(Int64Array::from(ids)), Arc::new(Float64Array::from(values))],
         )
         .unwrap();
 

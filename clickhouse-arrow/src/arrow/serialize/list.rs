@@ -70,7 +70,10 @@ const SMALL_OFFSET_THRESHOLD: usize = 64;
 /// Uses stack allocation for small arrays, heap for large.
 /// `ClickHouse` expects offsets starting from index 1 (skipping the leading 0).
 #[inline]
-async fn write_offsets_bulk_i32_async<W: ClickHouseWrite>(writer: &mut W, offsets: &[i32]) -> Result<()> {
+async fn write_offsets_bulk_i32_async<W: ClickHouseWrite>(
+    writer: &mut W,
+    offsets: &[i32],
+) -> Result<()> {
     let count = offsets.len().saturating_sub(1);
     if count == 0 {
         return Ok(());
@@ -101,7 +104,10 @@ async fn write_offsets_bulk_i32_async<W: ClickHouseWrite>(writer: &mut W, offset
 
 /// Write i64 offsets as u64 little-endian in bulk (async).
 #[inline]
-async fn write_offsets_bulk_i64_async<W: ClickHouseWrite>(writer: &mut W, offsets: &[i64]) -> Result<()> {
+async fn write_offsets_bulk_i64_async<W: ClickHouseWrite>(
+    writer: &mut W,
+    offsets: &[i64],
+) -> Result<()> {
     let count = offsets.len().saturating_sub(1);
     if count == 0 {
         return Ok(());
@@ -213,7 +219,11 @@ async fn write_fixed_offsets_bulk_async<W: ClickHouseWrite>(
 
 /// Write computed fixed-size offsets in bulk (sync version).
 #[inline]
-fn write_fixed_offsets_bulk<W: ClickHouseBytesWrite>(writer: &mut W, value_len: usize, num_rows: usize) {
+fn write_fixed_offsets_bulk<W: ClickHouseBytesWrite>(
+    writer: &mut W,
+    value_len: usize,
+    num_rows: usize,
+) {
     if num_rows == 0 {
         return;
     }
@@ -456,7 +466,9 @@ mod tests {
 
     type MockWriter = Vec<u8>;
 
-    fn wrap_array(typ: Type) -> Type { Type::Array(Box::new(typ)) }
+    fn wrap_array(typ: Type) -> Type {
+        Type::Array(Box::new(typ))
+    }
 
     /// Helper function used by individual type serializers
     pub(crate) async fn test_type_serializer(
@@ -733,7 +745,9 @@ mod tests_sync {
 
     type MockWriter = Vec<u8>;
 
-    fn wrap_array(typ: Type) -> Type { Type::Array(Box::new(typ)) }
+    fn wrap_array(typ: Type) -> Type {
+        Type::Array(Box::new(typ))
+    }
 
     /// Helper function used by individual type serializers
     #[expect(clippy::needless_pass_by_value)]

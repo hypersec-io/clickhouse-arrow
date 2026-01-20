@@ -18,14 +18,14 @@ use crate::{Error, Result, Row, Type};
 /// A chunk of data in columnar form.
 pub struct Block {
     /// Metadata about the block
-    pub info:         BlockInfo,
+    pub info: BlockInfo,
     /// The number of rows contained in the block
-    pub rows:         u64,
+    pub rows: u64,
     /// The type of each column by name, in order.
     pub column_types: Vec<(String, Type)>,
     /// The data of each column by name, in order. All `Value` should correspond to the associated
     /// type in `column_types`.
-    pub column_data:  Vec<Value>,
+    pub column_data: Vec<Value>,
 }
 
 // Iterator type for `take_iter_rows`
@@ -289,20 +289,20 @@ impl ProtocolData<Self, ()> for Block {
             // Check for sparse/custom serialization
             // Protocol: if has_custom=1, next byte is KindStackBinarySerializationType
             // See: https://github.com/ClickHouse/ClickHouse/blob/master/src/DataTypes/Serializations/SerializationInfo.cpp
-            let serialization_kind = if revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_CUSTOM_SERIALIZATION
-            {
-                let has_custom = reader.read_u8().await? != 0;
-                if has_custom {
-                    // KindStackBinarySerializationType enum:
-                    // 0 = DEFAULT, 1 = SPARSE, 2 = DETACHED, 3 = DETACHED_OVER_SPARSE,
-                    // 4 = REPLICATED, 5 = COMBINATION
-                    reader.read_u8().await?
+            let serialization_kind =
+                if revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_CUSTOM_SERIALIZATION {
+                    let has_custom = reader.read_u8().await? != 0;
+                    if has_custom {
+                        // KindStackBinarySerializationType enum:
+                        // 0 = DEFAULT, 1 = SPARSE, 2 = DETACHED, 3 = DETACHED_OVER_SPARSE,
+                        // 4 = REPLICATED, 5 = COMBINATION
+                        reader.read_u8().await?
+                    } else {
+                        0 // DEFAULT
+                    }
                 } else {
-                    0 // DEFAULT
-                }
-            } else {
-                0 // DEFAULT (no custom serialization support)
-            };
+                    0 // DEFAULT (no custom serialization support)
+                };
 
             if serialization_kind != 0 {
                 // Sparse or other custom serialization not supported for native format
@@ -373,20 +373,20 @@ impl ProtocolData<Self, ()> for Block {
             // Check for sparse/custom serialization
             // Protocol: if has_custom=1, next byte is KindStackBinarySerializationType
             // See: https://github.com/ClickHouse/ClickHouse/blob/master/src/DataTypes/Serializations/SerializationInfo.cpp
-            let serialization_kind = if revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_CUSTOM_SERIALIZATION
-            {
-                let has_custom = reader.try_get_u8()? != 0;
-                if has_custom {
-                    // KindStackBinarySerializationType enum:
-                    // 0 = DEFAULT, 1 = SPARSE, 2 = DETACHED, 3 = DETACHED_OVER_SPARSE,
-                    // 4 = REPLICATED, 5 = COMBINATION
-                    reader.try_get_u8()?
+            let serialization_kind =
+                if revision >= DBMS_MIN_PROTOCOL_VERSION_WITH_CUSTOM_SERIALIZATION {
+                    let has_custom = reader.try_get_u8()? != 0;
+                    if has_custom {
+                        // KindStackBinarySerializationType enum:
+                        // 0 = DEFAULT, 1 = SPARSE, 2 = DETACHED, 3 = DETACHED_OVER_SPARSE,
+                        // 4 = REPLICATED, 5 = COMBINATION
+                        reader.try_get_u8()?
+                    } else {
+                        0 // DEFAULT
+                    }
                 } else {
-                    0 // DEFAULT
-                }
-            } else {
-                0 // DEFAULT (no custom serialization support)
-            };
+                    0 // DEFAULT (no custom serialization support)
+                };
 
             if serialization_kind != 0 {
                 // Sparse or other custom serialization not supported for native format

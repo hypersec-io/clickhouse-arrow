@@ -1,0 +1,68 @@
+# Release Drafter configuration
+# Based on Polars release workflow pattern
+# https://github.com/release-drafter/release-drafter
+
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+categories:
+  - title: 'Breaking Changes'
+    labels:
+      - 'breaking'
+      - 'breaking-change'
+  - title: 'Features'
+    labels:
+      - 'feature'
+      - 'enhancement'
+      - 'feat'
+  - title: 'Bug Fixes'
+    labels:
+      - 'fix'
+      - 'bugfix'
+      - 'bug'
+  - title: 'Performance'
+    labels:
+      - 'performance'
+      - 'perf'
+  - title: 'Documentation'
+    labels:
+      - 'documentation'
+      - 'docs'
+  - title: 'Dependencies'
+    labels:
+      - 'dependencies'
+      - 'deps'
+  - title: 'CI/CD'
+    labels:
+      - 'ci'
+      - 'github-actions'
+  - title: 'Other Changes'
+    labels:
+      - '*'
+
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&'
+
+version-resolver:
+  major:
+    labels:
+      - 'major'
+      - 'breaking'
+  minor:
+    labels:
+      - 'minor'
+      - 'feature'
+      - 'enhancement'
+  patch:
+    labels:
+      - 'patch'
+      - 'fix'
+      - 'bugfix'
+  default: patch
+
+template: |
+  ## What's Changed
+
+  $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION

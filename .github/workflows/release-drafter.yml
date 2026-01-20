@@ -1,0 +1,41 @@
+# Release Drafter workflow
+# Automatically drafts GitHub releases based on merged PRs
+# Based on Polars pattern: https://github.com/pola-rs/polars
+
+name: Release Drafter
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  update-release-draft:
+    runs-on: ubuntu-latest
+    # Only run on push to main (not PRs)
+    if: github.event_name == 'push'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: release-drafter/release-drafter@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  label-pr:
+    runs-on: ubuntu-latest
+    # Only run on PRs
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: release-drafter/release-drafter@v6
+        with:
+          # Only label PRs, don't update release
+          disable-releaser: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

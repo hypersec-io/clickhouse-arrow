@@ -118,11 +118,24 @@ jobs:
             echo "This release was published from tag v$VERSION" >> release_notes_for_tag.md
           fi
 
+      - name: Build release artifacts
+        run: |
+          # Build optimized library for verification
+          cargo build --release -p clickhouse-arrow
+
+          # Generate documentation
+          cargo doc --no-deps -p clickhouse-arrow --release
+
+          # Create docs archive
+          tar -czf docs-${{ env.VERSION }}.tar.gz -C target/doc .
+
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           body_path: release_notes_for_tag.md
           draft: false
           prerelease: ${{ contains(env.VERSION, '-rc') || contains(env.VERSION, '-beta') || contains(env.VERSION, '-alpha') }}
           tag_name: v${{ env.VERSION }}
           name: Release v${{ env.VERSION }}
+          files: |
+            docs-${{ env.VERSION }}.tar.gz

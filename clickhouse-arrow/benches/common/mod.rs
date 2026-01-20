@@ -12,10 +12,10 @@ pub(crate) const DEFAULT_INSERT_SAMPLE_SIZE: usize = 50;
 
 #[derive(Row, Clone, Serialize, Deserialize)]
 pub(crate) struct ClickHouseNativeRow {
-    id: String,
-    name: String,
+    id:    String,
+    name:  String,
     value: f64,
-    ts: DateTime64<3>,
+    ts:    DateTime64<3>,
 }
 
 pub(crate) fn init() {
@@ -51,10 +51,10 @@ pub(crate) async fn setup_clickhouse_native(
 pub(crate) fn create_test_native_rows(rows: usize) -> Vec<ClickHouseNativeRow> {
     (0..rows)
         .map(|i| ClickHouseNativeRow {
-            id: Uuid::new_v4().to_string(),
-            name: format!("name{i}"),
+            id:    Uuid::new_v4().to_string(),
+            name:  format!("name{i}"),
             value: i as f64,
-            ts: DateTime64::<3>::try_from(
+            ts:    DateTime64::<3>::try_from(
                 chrono::DateTime::<chrono::Utc>::from_timestamp(i as i64 * 1000, 0).unwrap(),
             )
             .unwrap(),

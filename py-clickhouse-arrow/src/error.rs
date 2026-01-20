@@ -45,9 +45,7 @@ create_exception!(clickhouse_arrow, ConfigurationError, ClickHouseError);
 pub(crate) struct ClickHouseErrorWrapper(clickhouse_arrow::Error);
 
 impl From<clickhouse_arrow::Error> for ClickHouseErrorWrapper {
-    fn from(err: clickhouse_arrow::Error) -> Self {
-        Self(err)
-    }
+    fn from(err: clickhouse_arrow::Error) -> Self { Self(err) }
 }
 
 impl From<ClickHouseErrorWrapper> for PyErr {

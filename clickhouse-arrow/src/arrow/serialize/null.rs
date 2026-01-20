@@ -64,7 +64,8 @@ pub(super) async fn write_nullable_vectored<W: ClickHouseWrite>(
 }
 
 /// Serialize null bitmap for an Arrow array (async).
-/// Writes 1 for null, 0 for valid. No-op for arrays/maps (ClickHouse doesn't support nullable arrays).
+/// Writes 1 for null, 0 for valid. No-op for arrays/maps (ClickHouse doesn't support nullable
+/// arrays).
 pub(super) async fn serialize_nulls_async<W: ClickHouseWrite>(
     type_hint: &Type,
     writer: &mut W,

@@ -31,19 +31,19 @@ const CONV_THRESHOLD: f64 = 0.05; // 5% improvement threshold for convergence
 // Configuration to test
 #[derive(Debug, Clone, Copy, PartialEq)]
 struct Config {
-    workers: usize,
+    workers:    usize,
     batch_size: usize,
 }
 
 // Benchmark result for a configuration
 #[derive(Debug, Clone)]
 struct BenchmarkResult {
-    config: Config,
+    config:          Config,
     #[allow(dead_code)]
-    durations: Vec<f64>, // All iteration times (seconds) - kept for debugging
-    avg_throughput: f64,  // Average rows/sec
+    durations:       Vec<f64>, // All iteration times (seconds) - kept for debugging
+    avg_throughput:  f64, // Average rows/sec
     best_throughput: f64, // Best rows/sec
-    variance: f64,        // Coefficient of variation
+    variance:        f64, // Coefficient of variation
 }
 
 impl BenchmarkResult {
@@ -58,14 +58,12 @@ impl BenchmarkResult {
 struct Optimizer {
     #[allow(dead_code)]
     total_rows: usize, // Kept for future heuristics
-    history: Vec<BenchmarkResult>,
-    iteration: usize,
+    history:    Vec<BenchmarkResult>,
+    iteration:  usize,
 }
 
 impl Optimizer {
-    fn new(total_rows: usize) -> Self {
-        Self { total_rows, history: Vec::new(), iteration: 0 }
-    }
+    fn new(total_rows: usize) -> Self { Self { total_rows, history: Vec::new(), iteration: 0 } }
 
     /// Initial guesses using heuristics
     fn initial_guesses(&self) -> Vec<Config> {
@@ -141,9 +139,7 @@ impl Optimizer {
         candidates
     }
 
-    fn add_result(&mut self, result: BenchmarkResult) {
-        self.history.push(result);
-    }
+    fn add_result(&mut self, result: BenchmarkResult) { self.history.push(result); }
 
     fn has_converged(&self, min_iterations: usize) -> bool {
         if self.iteration < min_iterations {
@@ -270,14 +266,11 @@ async fn run(ch: &'static ClickHouseContainer) -> Result<()> {
     // Get schema configuration
     let batch_config = arrow_tests::BatchConfig::from_env();
 
-    print_params_table(
-        "Dynamic Performance Tuner",
-        &[
-            ("Total Rows", format!("{}", total_rows)),
-            ("Max Steps", format!("{} (optimizer iterations)", max_steps)),
-            ("Iters per config", format!("{} (runs to average)", runs_per_config)),
-        ],
-    );
+    print_params_table("Dynamic Performance Tuner", &[
+        ("Total Rows", format!("{}", total_rows)),
+        ("Max Steps", format!("{} (optimizer iterations)", max_steps)),
+        ("Iters per config", format!("{} (runs to average)", runs_per_config)),
+    ]);
     eprintln!();
 
     // Display schema configuration

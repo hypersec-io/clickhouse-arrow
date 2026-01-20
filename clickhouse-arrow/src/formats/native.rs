@@ -12,9 +12,7 @@ use crate::prelude::*;
 
 impl DataSize for Block {
     #[inline]
-    fn data_size(&self) -> usize {
-        self.estimate_size()
-    }
+    fn data_size(&self) -> usize { self.estimate_size() }
 }
 
 /// Marker for Native format.

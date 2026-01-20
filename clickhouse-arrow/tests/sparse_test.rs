@@ -230,9 +230,9 @@ async fn test_sparse_wide_variety_types() {
 
     // Insert 2000 rows with 95% default values (varying sparsity per column)
     let mut insert_sql = String::from(
-        "INSERT INTO sparse_variety_test (id, sparse_int8, sparse_int16, sparse_int32, sparse_int64, \
-         sparse_uint8, sparse_uint16, sparse_uint32, sparse_uint64, sparse_float32, sparse_float64, \
-         sparse_string, sparse_fixed, sparse_date, sparse_datetime) VALUES ",
+        "INSERT INTO sparse_variety_test (id, sparse_int8, sparse_int16, sparse_int32, \
+         sparse_int64, sparse_uint8, sparse_uint16, sparse_uint32, sparse_uint64, sparse_float32, \
+         sparse_float64, sparse_string, sparse_fixed, sparse_date, sparse_datetime) VALUES ",
     );
 
     let mut values = Vec::new();
@@ -539,7 +539,8 @@ async fn test_sparse_edge_cases() {
     // Insert in batches to avoid SQL size limits
     for chunk in values.chunks(1000) {
         let insert_sql = format!(
-            "INSERT INTO sparse_edge_test (id, consecutive_start, consecutive_end, dense_col, sparse_5pct) VALUES {}",
+            "INSERT INTO sparse_edge_test (id, consecutive_start, consecutive_end, dense_col, \
+             sparse_5pct) VALUES {}",
             chunk.join(", ")
         );
         client.execute(&insert_sql, None).await.expect("Failed to insert batch");
@@ -673,7 +674,8 @@ async fn test_sparse_nullable_columns() {
 
     for chunk in values.chunks(1000) {
         let insert_sql = format!(
-            "INSERT INTO sparse_nullable_test (id, nullable_int, nullable_str, nullable_float) VALUES {}",
+            "INSERT INTO sparse_nullable_test (id, nullable_int, nullable_str, nullable_float) \
+             VALUES {}",
             chunk.join(", ")
         );
         client.execute(&insert_sql, None).await.expect("Failed to insert batch");
@@ -802,7 +804,8 @@ async fn test_sparse_large_scale() {
     // Insert in larger batches for efficiency
     for chunk in values.chunks(5000) {
         let insert_sql = format!(
-            "INSERT INTO sparse_large_test (id, ultra_sparse, sparse_a, sparse_b, sparse_c) VALUES {}",
+            "INSERT INTO sparse_large_test (id, ultra_sparse, sparse_a, sparse_b, sparse_c) \
+             VALUES {}",
             chunk.join(", ")
         );
         client.execute(&insert_sql, None).await.expect("Failed to insert batch");

@@ -20,7 +20,7 @@ use crate::errors::Result;
 /// Simpler but slightly higher latency than native protocol.
 #[derive(Debug, Clone)]
 pub struct HttpClient {
-    client: reqwest::Client,
+    client:  reqwest::Client,
     options: HttpOptions,
 }
 

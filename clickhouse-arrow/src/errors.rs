@@ -137,9 +137,7 @@ impl Error {
 /// This follows the pattern from the official `clickhouse-rs` client, allowing
 /// errors during serialization to be properly propagated through serde.
 impl serde::ser::Error for Error {
-    fn custom<T: Display>(msg: T) -> Self {
-        Error::SerializeError(msg.to_string())
-    }
+    fn custom<T: Display>(msg: T) -> Self { Error::SerializeError(msg.to_string()) }
 }
 
 /// Implement `serde::de::Error` to enable custom deserialization error handling.
@@ -147,9 +145,7 @@ impl serde::ser::Error for Error {
 /// This follows the pattern from the official `clickhouse-rs` client, allowing
 /// errors during deserialization to be properly propagated through serde.
 impl serde::de::Error for Error {
-    fn custom<T: Display>(msg: T) -> Self {
-        Error::DeserializeError(msg.to_string())
-    }
+    fn custom<T: Display>(msg: T) -> Self { Error::DeserializeError(msg.to_string()) }
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

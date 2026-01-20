@@ -18,14 +18,14 @@ use crate::{Error, Result, Row, Type};
 /// A chunk of data in columnar form.
 pub struct Block {
     /// Metadata about the block
-    pub info: BlockInfo,
+    pub info:         BlockInfo,
     /// The number of rows contained in the block
-    pub rows: u64,
+    pub rows:         u64,
     /// The type of each column by name, in order.
     pub column_types: Vec<(String, Type)>,
     /// The data of each column by name, in order. All `Value` should correspond to the associated
     /// type in `column_types`.
-    pub column_data: Vec<Value>,
+    pub column_data:  Vec<Value>,
 }
 
 // Iterator type for `take_iter_rows`
@@ -307,9 +307,11 @@ impl ProtocolData<Self, ()> for Block {
             if serialization_kind != 0 {
                 // Sparse or other custom serialization not supported for native format
                 return Err(Error::Unimplemented(format!(
-                    "Custom serialization kind {serialization_kind} not yet supported for column '{name}' (type: {type_name}). \
-                    Workaround: Set `ratio_of_defaults_for_sparse_serialization = 1.0` in your ClickHouse \
-                    server settings to disable sparse serialization, or use ArrowFormat instead of NativeFormat."
+                    "Custom serialization kind {serialization_kind} not yet supported for column \
+                     '{name}' (type: {type_name}). Workaround: Set \
+                     `ratio_of_defaults_for_sparse_serialization = 1.0` in your ClickHouse server \
+                     settings to disable sparse serialization, or use ArrowFormat instead of \
+                     NativeFormat."
                 )));
             }
 
@@ -391,9 +393,11 @@ impl ProtocolData<Self, ()> for Block {
             if serialization_kind != 0 {
                 // Sparse or other custom serialization not supported for native format
                 return Err(Error::Unimplemented(format!(
-                    "Custom serialization kind {serialization_kind} not yet supported for column '{name}' (type: {type_name}). \
-                    Workaround: Set `ratio_of_defaults_for_sparse_serialization = 1.0` in your ClickHouse \
-                    server settings to disable sparse serialization, or use ArrowFormat instead of NativeFormat."
+                    "Custom serialization kind {serialization_kind} not yet supported for column \
+                     '{name}' (type: {type_name}). Workaround: Set \
+                     `ratio_of_defaults_for_sparse_serialization = 1.0` in your ClickHouse server \
+                     settings to disable sparse serialization, or use ArrowFormat instead of \
+                     NativeFormat."
                 )));
             }
 

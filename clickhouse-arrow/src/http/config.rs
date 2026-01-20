@@ -41,12 +41,14 @@ pub struct HttpOptions {
 impl Default for HttpOptions {
     fn default() -> Self {
         Self {
-            url: "http://localhost:8123".parse().expect("default URL should be valid"),
-            database: None,
-            user: None,
-            password: None,
+            url:                "http://localhost:8123"
+                .parse()
+                .expect("default URL should be valid"),
+            database:           None,
+            user:               None,
+            password:           None,
             enable_compression: true,
-            timeout: Duration::from_secs(DEFAULT_TIMEOUT_SECS),
+            timeout:            Duration::from_secs(DEFAULT_TIMEOUT_SECS),
         }
     }
 }

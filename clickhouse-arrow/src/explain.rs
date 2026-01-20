@@ -72,21 +72,15 @@ impl ExplainOperation {
 
     /// Returns true if this operation supports JSON output format.
     #[must_use]
-    pub fn supports_json(&self) -> bool {
-        matches!(self, ExplainOperation::Plan)
-    }
+    pub fn supports_json(&self) -> bool { matches!(self, ExplainOperation::Plan) }
 
     /// Returns true if this operation returns tabular data (suitable for Arrow).
     #[must_use]
-    pub fn is_tabular(&self) -> bool {
-        matches!(self, ExplainOperation::Estimate)
-    }
+    pub fn is_tabular(&self) -> bool { matches!(self, ExplainOperation::Estimate) }
 }
 
 impl fmt::Display for ExplainOperation {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_sql())
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_sql()) }
 }
 
 /// Output format for EXPLAIN results.
@@ -161,35 +155,27 @@ pub struct ExplainOptions {
     /// The type of explain to run.
     pub operation: ExplainOperation,
     /// The output format.
-    pub format: ExplainFormat,
+    pub format:    ExplainFormat,
     /// The execution mode.
-    pub mode: ExplainMode,
+    pub mode:      ExplainMode,
 }
 
 impl ExplainOptions {
     /// Create new explain options with defaults (Plan, Auto format, Parallel mode).
     #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
+    pub fn new() -> Self { Self::default() }
 
     /// Create explain options for AST output.
     #[must_use]
-    pub fn ast() -> Self {
-        Self { operation: ExplainOperation::Ast, ..Default::default() }
-    }
+    pub fn ast() -> Self { Self { operation: ExplainOperation::Ast, ..Default::default() } }
 
     /// Create explain options for SYNTAX output.
     #[must_use]
-    pub fn syntax() -> Self {
-        Self { operation: ExplainOperation::Syntax, ..Default::default() }
-    }
+    pub fn syntax() -> Self { Self { operation: ExplainOperation::Syntax, ..Default::default() } }
 
     /// Create explain options for PLAN output.
     #[must_use]
-    pub fn plan() -> Self {
-        Self { operation: ExplainOperation::Plan, ..Default::default() }
-    }
+    pub fn plan() -> Self { Self { operation: ExplainOperation::Plan, ..Default::default() } }
 
     /// Create explain options for PIPELINE output.
     #[must_use]
@@ -302,22 +288,16 @@ impl ExplainResult {
 
     /// Check if the result is text.
     #[must_use]
-    pub fn is_text(&self) -> bool {
-        matches!(self, ExplainResult::Text(_))
-    }
+    pub fn is_text(&self) -> bool { matches!(self, ExplainResult::Text(_)) }
 
     /// Check if the result is JSON.
     #[cfg(feature = "serde")]
     #[must_use]
-    pub fn is_json(&self) -> bool {
-        matches!(self, ExplainResult::Json(_))
-    }
+    pub fn is_json(&self) -> bool { matches!(self, ExplainResult::Json(_)) }
 
     /// Check if the result is Arrow.
     #[must_use]
-    pub fn is_arrow(&self) -> bool {
-        matches!(self, ExplainResult::Arrow(_))
-    }
+    pub fn is_arrow(&self) -> bool { matches!(self, ExplainResult::Arrow(_)) }
 }
 
 impl fmt::Display for ExplainResult {
@@ -347,13 +327,13 @@ pub struct ExplainEstimateRow {
     /// Database name.
     pub database: String,
     /// Table name.
-    pub table: String,
+    pub table:    String,
     /// Number of parts to read.
-    pub parts: u64,
+    pub parts:    u64,
     /// Estimated number of rows.
-    pub rows: u64,
+    pub rows:     u64,
     /// Number of marks to read.
-    pub marks: u64,
+    pub marks:    u64,
 }
 
 impl ExplainEstimateRow {
@@ -403,10 +383,10 @@ impl ExplainEstimateRow {
         for i in 0..batch.num_rows() {
             result.push(ExplainEstimateRow {
                 database: databases.value(i).to_string(),
-                table: tables.value(i).to_string(),
-                parts: parts.value(i),
-                rows: rows.value(i),
-                marks: marks.value(i),
+                table:    tables.value(i).to_string(),
+                parts:    parts.value(i),
+                rows:     rows.value(i),
+                marks:    marks.value(i),
             });
         }
 
@@ -442,21 +422,19 @@ impl ExplainEstimateRow {
 #[derive(Debug, Clone, Default)]
 pub struct QueryOptions {
     /// Query parameters for parameterized queries.
-    pub params: Option<QueryParams>,
+    pub params:  Option<QueryParams>,
     /// Result limits (memory, rows, batches).
-    pub limits: Option<QueryLimits>,
+    pub limits:  Option<QueryLimits>,
     /// EXPLAIN configuration.
     pub explain: Option<ExplainOptions>,
     /// Query ID for tracking and debugging.
-    pub qid: Option<Qid>,
+    pub qid:     Option<Qid>,
 }
 
 impl QueryOptions {
     /// Create new query options with defaults.
     #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
+    pub fn new() -> Self { Self::default() }
 
     /// Set query parameters.
     #[must_use]
@@ -497,9 +475,7 @@ impl QueryOptions {
 
     /// Check if explain is configured.
     #[must_use]
-    pub fn has_explain(&self) -> bool {
-        self.explain.is_some()
-    }
+    pub fn has_explain(&self) -> bool { self.explain.is_some() }
 
     /// Check if this is explain-only mode.
     #[must_use]

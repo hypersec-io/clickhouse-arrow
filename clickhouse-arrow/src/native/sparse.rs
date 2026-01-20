@@ -24,7 +24,7 @@ pub(crate) const END_OF_GRANULE_FLAG: u64 = 1 << 62;
 #[derive(Debug, Default, Clone)]
 pub(crate) struct SparseDeserializeState {
     /// Trailing defaults from previous read that haven't been consumed yet.
-    pub num_trailing_defaults: u64,
+    pub num_trailing_defaults:    u64,
     /// Non-default value pending after the trailing defaults.
     pub has_value_after_defaults: bool,
 }
@@ -346,8 +346,9 @@ fn expand_fixed_size_binary(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use bytes::Bytes;
+
+    use super::*;
 
     fn encode_var_uint(value: u64) -> Vec<u8> {
         let mut result = Vec::new();

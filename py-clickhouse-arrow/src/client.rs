@@ -1,10 +1,9 @@
 //! Python client wrapper – query, insert, execute w/ PyArrow.
 
 use arrow::array::RecordBatch;
+use clickhouse_arrow::prelude::ArrowClient;
 use futures_util::StreamExt;
 use pyo3::prelude::*;
-
-use clickhouse_arrow::prelude::ArrowClient;
 
 use crate::arrow_ffi::{record_batch_from_pyarrow, record_batch_to_pyarrow};
 use crate::error::to_py_result;
@@ -19,9 +18,7 @@ pub struct Client {
 
 impl Client {
     /// Create a new Client wrapper around an ArrowClient.
-    pub fn new(client: ArrowClient) -> Self {
-        Self { inner: client }
-    }
+    pub fn new(client: ArrowClient) -> Self { Self { inner: client } }
 }
 
 #[pymethods]
@@ -73,7 +70,5 @@ impl Client {
     }
 
     /// String representation showing connection status.
-    fn __repr__(&self) -> String {
-        format!("Client(status={:?})", self.inner.status())
-    }
+    fn __repr__(&self) -> String { format!("Client(status={:?})", self.inner.status()) }
 }

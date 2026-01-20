@@ -22,15 +22,15 @@ use futures_util::StreamExt;
 
 #[derive(Debug, Clone)]
 struct TestResult {
-    workers: usize,
-    batch_size: usize,
-    rows: usize,
-    avg_duration_secs: f64,  // Outlier-stripped average
+    workers:            usize,
+    batch_size:         usize,
+    rows:               usize,
+    avg_duration_secs:  f64, // Outlier-stripped average
     best_duration_secs: f64, // Best (minimum) time
-    avg_rows_per_sec: f64,   // Average throughput
-    best_rows_per_sec: f64,  // Best (maximum) throughput
-    count_time_secs: f64,
-    drop_time_secs: f64,
+    avg_rows_per_sec:   f64, // Average throughput
+    best_rows_per_sec:  f64, // Best (maximum) throughput
+    count_time_secs:    f64,
+    drop_time_secs:     f64,
 }
 
 #[tokio::main]

@@ -39,9 +39,7 @@ const CLICKHOUSE_ENDPOINT: &str = "localhost";
 ///
 /// Returns `true` if `CLICKHOUSE_HOST` environment variable is set,
 /// which indicates the user wants to use an external `ClickHouse` instance.
-pub fn use_external_clickhouse() -> bool {
-    env::var(HOST_ENV).is_ok_and(|v| !v.is_empty())
-}
+pub fn use_external_clickhouse() -> bool { env::var(HOST_ENV).is_ok_and(|v| !v.is_empty()) }
 
 /// Create a `ClickHouseContainer` from environment variables for external `ClickHouse`.
 ///
@@ -302,14 +300,12 @@ pub async fn get_or_create_benchmark_container(conf: Option<&str>) -> &'static C
 /// Builder for `ClickHouseContainer` with configurable options
 pub struct ClickHouseContainerBuilder {
     config: Option<String>,
-    tmpfs: bool,
+    tmpfs:  bool,
 }
 
 impl ClickHouseContainerBuilder {
     /// Create a new builder with default settings
-    pub fn new() -> Self {
-        Self { config: None, tmpfs: false }
-    }
+    pub fn new() -> Self { Self { config: None, tmpfs: false } }
 
     /// Use a custom `ClickHouse` config file
     #[must_use]
@@ -361,26 +357,22 @@ impl ClickHouseContainerBuilder {
 }
 
 impl Default for ClickHouseContainerBuilder {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
 
 pub struct ClickHouseContainer {
-    pub endpoint: String,
+    pub endpoint:    String,
     pub native_port: u16,
-    pub http_port: u16,
-    pub url: String,
-    pub user: String,
-    pub password: String,
-    container: RwLock<Option<ContainerAsync<GenericImage>>>,
+    pub http_port:   u16,
+    pub url:         String,
+    pub user:        String,
+    pub password:    String,
+    container:       RwLock<Option<ContainerAsync<GenericImage>>>,
 }
 
 impl ClickHouseContainer {
     /// Create a builder for configuring the container
-    pub fn builder() -> ClickHouseContainerBuilder {
-        ClickHouseContainerBuilder::new()
-    }
+    pub fn builder() -> ClickHouseContainerBuilder { ClickHouseContainerBuilder::new() }
 
     /// Create a new `ClickHouse` container with default settings
     ///
@@ -469,26 +461,16 @@ impl ClickHouseContainer {
         Ok(ClickHouseContainer { endpoint, native_port, http_port, url, user, password, container })
     }
 
-    pub fn get_native_url(&self) -> &str {
-        &self.url
-    }
+    pub fn get_native_url(&self) -> &str { &self.url }
 
-    pub fn get_native_port(&self) -> u16 {
-        self.native_port
-    }
+    pub fn get_native_port(&self) -> u16 { self.native_port }
 
-    pub fn get_http_url(&self) -> String {
-        format!("http://{}:{}", self.endpoint, self.http_port)
-    }
+    pub fn get_http_url(&self) -> String { format!("http://{}:{}", self.endpoint, self.http_port) }
 
-    pub fn get_http_port(&self) -> u16 {
-        self.http_port
-    }
+    pub fn get_http_port(&self) -> u16 { self.http_port }
 
     /// Returns `true` if this is an external `ClickHouse` connection (not a container).
-    pub async fn is_external(&self) -> bool {
-        self.container.read().await.is_none()
-    }
+    pub async fn is_external(&self) -> bool { self.container.read().await.is_none() }
 
     /// Shutdown the container (no-op for external connections).
     ///
@@ -613,20 +595,17 @@ pub mod arrow_tests {
             Arc::new(BinaryArray::from_iter_values((0..rows).map(|i| format!("name{i}"))))
                 as ArrayRef
         };
-        RecordBatch::try_new(
-            schema,
-            vec![
-                id_row,
-                name_row,
-                Arc::new(Float64Array::from((0..rows).map(|i| i as f64).collect::<Vec<_>>())),
-                Arc::new(
-                    TimestampMillisecondArray::from(
-                        (0..rows).map(|i| i as i64 * 1000).collect::<Vec<_>>(),
-                    )
-                    .with_timezone(Arc::from("UTC")),
-                ),
-            ],
-        )
+        RecordBatch::try_new(schema, vec![
+            id_row,
+            name_row,
+            Arc::new(Float64Array::from((0..rows).map(|i| i as f64).collect::<Vec<_>>())),
+            Arc::new(
+                TimestampMillisecondArray::from(
+                    (0..rows).map(|i| i as i64 * 1000).collect::<Vec<_>>(),
+                )
+                .with_timezone(Arc::from("UTC")),
+            ),
+        ])
         .unwrap()
     }
 
@@ -666,25 +645,25 @@ pub mod arrow_tests {
     /// Configuration for creating test batches with specific column types
     #[derive(Debug, Clone, Copy, Default)]
     pub struct BatchConfig {
-        pub int8: usize,
-        pub int16: usize,
-        pub int32: usize,
-        pub int64: usize,
-        pub uint8: usize,
-        pub uint16: usize,
-        pub uint32: usize,
-        pub uint64: usize,
-        pub float32: usize,
-        pub float64: usize,
-        pub bool: usize,
-        pub utf8: usize,
-        pub utf8_len: usize,
-        pub binary: usize,
+        pub int8:       usize,
+        pub int16:      usize,
+        pub int32:      usize,
+        pub int64:      usize,
+        pub uint8:      usize,
+        pub uint16:     usize,
+        pub uint32:     usize,
+        pub uint64:     usize,
+        pub float32:    usize,
+        pub float64:    usize,
+        pub bool:       usize,
+        pub utf8:       usize,
+        pub utf8_len:   usize,
+        pub binary:     usize,
         pub binary_len: usize,
-        pub timestamp: usize,
-        pub rand: bool,
+        pub timestamp:  usize,
+        pub rand:       bool,
         pub include_id: bool,
-        pub unique_id: bool,
+        pub unique_id:  bool,
     }
 
     impl BatchConfig {
@@ -714,25 +693,25 @@ pub mod arrow_tests {
             };
 
             let mut config = Self {
-                int8: parse_env("INT8"),
-                int16: parse_env("INT16"),
-                int32: parse_env("INT32"),
-                int64: parse_env("INT64"),
-                uint8: parse_env("UINT8"),
-                uint16: parse_env("UINT16"),
-                uint32: parse_env("UINT32"),
-                uint64: parse_env("UINT64"),
-                float32: parse_env("FLOAT32"),
-                float64: parse_env("FLOAT64"),
-                bool: parse_env("BOOL"),
-                utf8: parse_env("UTF8"),
-                utf8_len: parse_env("UTF8_LEN"),
-                binary: parse_env("BINARY"),
+                int8:       parse_env("INT8"),
+                int16:      parse_env("INT16"),
+                int32:      parse_env("INT32"),
+                int64:      parse_env("INT64"),
+                uint8:      parse_env("UINT8"),
+                uint16:     parse_env("UINT16"),
+                uint32:     parse_env("UINT32"),
+                uint64:     parse_env("UINT64"),
+                float32:    parse_env("FLOAT32"),
+                float64:    parse_env("FLOAT64"),
+                bool:       parse_env("BOOL"),
+                utf8:       parse_env("UTF8"),
+                utf8_len:   parse_env("UTF8_LEN"),
+                binary:     parse_env("BINARY"),
                 binary_len: parse_env("BINARY_LEN"),
-                timestamp: parse_env("TIMESTAMP"),
-                rand: parse_bool_env("RAND", true),
+                timestamp:  parse_env("TIMESTAMP"),
+                rand:       parse_bool_env("RAND", true),
                 include_id: parse_bool_env("INCLUDE_ID", true),
-                unique_id: parse_bool_env("UNIQUE_ID", true),
+                unique_id:  parse_bool_env("UNIQUE_ID", true),
             };
 
             // Apply defaults

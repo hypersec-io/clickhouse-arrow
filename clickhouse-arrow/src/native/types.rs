@@ -121,14 +121,14 @@ pub enum Type {
     /// name: function name (e.g., "sum", "avg", "uniq")
     /// types: argument types
     AggregateFunction {
-        name: String,
+        name:  String,
         types: Vec<Type>,
     },
 
     /// `SimpleAggregateFunction` - simplified aggregate state
     /// Used for simple aggregates that can be combined with simple operations
     SimpleAggregateFunction {
-        name: String,
+        name:  String,
         types: Vec<Type>,
     },
 }
@@ -199,9 +199,7 @@ impl Type {
         }
     }
 
-    pub fn is_nullable(&self) -> bool {
-        matches!(self, Type::Nullable(_))
-    }
+    pub fn is_nullable(&self) -> bool { matches!(self, Type::Nullable(_)) }
 
     pub fn strip_low_cardinality(&self) -> &Type {
         match self {

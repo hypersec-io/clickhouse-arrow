@@ -3,10 +3,10 @@
 //! Why bother? Insert/query throughput is dominated by serialisation time.
 //! These optimisations target the inner loops that run millions of times per batch:
 //!
-//! - **Null bitmap expansion**: Every nullable column needs Arrow's packed bits
-//!   expanded to ClickHouse's byte-per-value format. SIMD gives ~2.2x speedup.
-//! - **Buffer pooling**: Avoids malloc/free churn in the serialisation loop.
-//!   ~21% faster for 4KB buffers (common for null masks), ~5% for 64KB.
+//! - **Null bitmap expansion**: Every nullable column needs Arrow's packed bits expanded to
+//!   ClickHouse's byte-per-value format. SIMD gives ~2.2x speedup.
+//! - **Buffer pooling**: Avoids malloc/free churn in the serialisation loop. ~21% faster for 4KB
+//!   buffers (common for null masks), ~5% for 64KB.
 //!
 //! Falls back to scalar on platforms without AVX2/NEON. The serialisation layer
 //! uses these automatically – you probably don't need to call them directly.
@@ -419,10 +419,10 @@ impl BufferPool {
     /// Get current pool statistics for monitoring.
     pub fn stats(&self) -> BufferPoolStats {
         BufferPoolStats {
-            tiny_count: self.pools[0].lock().len(),
-            small_count: self.pools[1].lock().len(),
+            tiny_count:   self.pools[0].lock().len(),
+            small_count:  self.pools[1].lock().len(),
             medium_count: self.pools[2].lock().len(),
-            large_count: self.pools[3].lock().len(),
+            large_count:  self.pools[3].lock().len(),
             xlarge_count: self.pools[4].lock().len(),
         }
     }
@@ -462,17 +462,15 @@ impl BufferPool {
 /// Statistics for buffer pool monitoring.
 #[derive(Debug, Clone, Copy)]
 pub struct BufferPoolStats {
-    pub tiny_count: usize,   // 1KB buffers
-    pub small_count: usize,  // 4KB buffers
+    pub tiny_count:   usize, // 1KB buffers
+    pub small_count:  usize, // 4KB buffers
     pub medium_count: usize, // 64KB buffers
-    pub large_count: usize,  // 1MB buffers
+    pub large_count:  usize, // 1MB buffers
     pub xlarge_count: usize, // >1MB buffers
 }
 
 impl Default for BufferPool {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
 
 /// Global buffer pool for hot path allocations.
@@ -486,27 +484,19 @@ pub struct PooledBuffer {
 impl PooledBuffer {
     /// Get a pooled buffer with at least `capacity` bytes.
     #[inline]
-    pub fn with_capacity(capacity: usize) -> Self {
-        Self { buf: Some(BUFFER_POOL.get(capacity)) }
-    }
+    pub fn with_capacity(capacity: usize) -> Self { Self { buf: Some(BUFFER_POOL.get(capacity)) } }
 
     /// Get mutable access to the underlying buffer. Panics if already taken.
     #[inline]
-    pub fn buffer_mut(&mut self) -> &mut Vec<u8> {
-        self.buf.as_mut().unwrap()
-    }
+    pub fn buffer_mut(&mut self) -> &mut Vec<u8> { self.buf.as_mut().unwrap() }
 
     /// Get immutable access. Panics if already taken.
     #[inline]
-    pub fn buffer(&self) -> &Vec<u8> {
-        self.buf.as_ref().unwrap()
-    }
+    pub fn buffer(&self) -> &Vec<u8> { self.buf.as_ref().unwrap() }
 
     /// Take ownership of the buffer (won't be returned to pool). Panics if already taken.
     #[inline]
-    pub fn take(mut self) -> Vec<u8> {
-        self.buf.take().unwrap()
-    }
+    pub fn take(mut self) -> Vec<u8> { self.buf.take().unwrap() }
 }
 
 impl Drop for PooledBuffer {
@@ -520,15 +510,11 @@ impl Drop for PooledBuffer {
 impl std::ops::Deref for PooledBuffer {
     type Target = Vec<u8>;
 
-    fn deref(&self) -> &Self::Target {
-        self.buf.as_ref().unwrap()
-    }
+    fn deref(&self) -> &Self::Target { self.buf.as_ref().unwrap() }
 }
 
 impl std::ops::DerefMut for PooledBuffer {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        self.buf.as_mut().unwrap()
-    }
+    fn deref_mut(&mut self) -> &mut Self::Target { self.buf.as_mut().unwrap() }
 }
 
 // Tests

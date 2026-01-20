@@ -124,15 +124,12 @@ mod tests {
             Field::new("string_col", DataType::Utf8, false),
         ]));
 
-        let batch = RecordBatch::try_new(
-            schema,
-            vec![
-                Arc::new(Int32Array::from(vec![1, 2, 3])),
-                Arc::new(Int64Array::from(vec![100, 200, 300])),
-                Arc::new(Float64Array::from(vec![1.5, 2.5, 3.5])),
-                Arc::new(StringArray::from(vec!["a", "b", "c"])),
-            ],
-        )
+        let batch = RecordBatch::try_new(schema, vec![
+            Arc::new(Int32Array::from(vec![1, 2, 3])),
+            Arc::new(Int64Array::from(vec![100, 200, 300])),
+            Arc::new(Float64Array::from(vec![1.5, 2.5, 3.5])),
+            Arc::new(StringArray::from(vec!["a", "b", "c"])),
+        ])
         .unwrap();
 
         let serialized = serialize_batch(&batch).unwrap();
@@ -156,10 +153,10 @@ mod tests {
         let ids: Vec<i64> = (0..ROW_COUNT as i64).collect();
         let values: Vec<f64> = (0..ROW_COUNT).map(|i| i as f64 * 0.5).collect();
 
-        let batch = RecordBatch::try_new(
-            schema,
-            vec![Arc::new(Int64Array::from(ids)), Arc::new(Float64Array::from(values))],
-        )
+        let batch = RecordBatch::try_new(schema, vec![
+            Arc::new(Int64Array::from(ids)),
+            Arc::new(Float64Array::from(values)),
+        ])
         .unwrap();
 
         let serialized = serialize_batch(&batch).unwrap();

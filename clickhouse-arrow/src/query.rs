@@ -13,21 +13,15 @@ use crate::settings::SETTING_FLAG_CUSTOM;
 pub struct Qid(Uuid);
 
 impl Default for Qid {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
 
 impl Qid {
     /// Generate a new `v4` [`Uuid`]
-    pub fn new() -> Self {
-        Self(Uuid::new_v4())
-    }
+    pub fn new() -> Self { Self(Uuid::new_v4()) }
 
     /// Take the inner [`Uuid`]
-    pub fn into_inner(self) -> Uuid {
-        self.0
-    }
+    pub fn into_inner(self) -> Uuid { self.0 }
 
     // Convert to 32-char hex string, no heap allocation
     pub(crate) async fn write_id<W: ClickHouseWrite>(&self, writer: &mut W) -> Result<()> {
@@ -53,9 +47,7 @@ impl<T: Into<Qid>> From<Option<T>> for Qid {
 }
 
 impl From<Uuid> for Qid {
-    fn from(id: Uuid) -> Self {
-        Self(id)
-    }
+    fn from(id: Uuid) -> Self { Self(id) }
 }
 
 impl fmt::Display for Qid {
@@ -104,9 +96,7 @@ where
 
 impl QueryParams {
     /// Returns the number of query parameters.
-    pub(crate) fn len(&self) -> usize {
-        self.0.len()
-    }
+    pub(crate) fn len(&self) -> usize { self.0.len() }
 
     /// Encodes query parameters to the `ClickHouse` native protocol.
     ///
@@ -186,31 +176,21 @@ pub struct ParsedQuery(pub(crate) String);
 impl std::ops::Deref for ParsedQuery {
     type Target = String;
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
+    fn deref(&self) -> &Self::Target { &self.0 }
 }
 
 impl fmt::Display for ParsedQuery {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.0) }
 }
 
 impl From<String> for ParsedQuery {
-    fn from(q: String) -> ParsedQuery {
-        ParsedQuery(q.trim().to_string())
-    }
+    fn from(q: String) -> ParsedQuery { ParsedQuery(q.trim().to_string()) }
 }
 
 impl From<&str> for ParsedQuery {
-    fn from(q: &str) -> ParsedQuery {
-        ParsedQuery(q.trim().to_string())
-    }
+    fn from(q: &str) -> ParsedQuery { ParsedQuery(q.trim().to_string()) }
 }
 
 impl From<&String> for ParsedQuery {
-    fn from(q: &String) -> ParsedQuery {
-        ParsedQuery(q.trim().to_string())
-    }
+    fn from(q: &String) -> ParsedQuery { ParsedQuery(q.trim().to_string()) }
 }

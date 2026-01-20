@@ -35,9 +35,7 @@ pub(crate) enum ArrowFfiError {
 }
 
 impl From<ArrowFfiError> for PyErr {
-    fn from(err: ArrowFfiError) -> PyErr {
-        PyTypeError::new_err(err.to_string())
-    }
+    fn from(err: ArrowFfiError) -> PyErr { PyTypeError::new_err(err.to_string()) }
 }
 
 /// Export a `RecordBatch` to a PyArrow `RecordBatch` via the C Data Interface.

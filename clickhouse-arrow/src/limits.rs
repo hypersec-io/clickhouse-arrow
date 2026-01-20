@@ -42,13 +42,13 @@ impl std::fmt::Display for TruncationReason {
 #[derive(Debug, Clone, Copy, Default)]
 pub struct QueryStats {
     /// Total rows returned (after truncation).
-    pub rows_returned: u64,
+    pub rows_returned:     u64,
     /// Total batches returned (after truncation).
-    pub batches_returned: u64,
+    pub batches_returned:  u64,
     /// Total memory consumed by returned batches (bytes).
-    pub memory_bytes: usize,
+    pub memory_bytes:      usize,
     /// Whether results were truncated.
-    pub truncated: bool,
+    pub truncated:         bool,
     /// Reason for truncation, if any.
     pub truncation_reason: Option<TruncationReason>,
 }
@@ -56,9 +56,7 @@ pub struct QueryStats {
 impl QueryStats {
     /// Returns true if the results were truncated for any reason.
     #[must_use]
-    pub fn is_truncated(&self) -> bool {
-        self.truncated
-    }
+    pub fn is_truncated(&self) -> bool { self.truncated }
 
     /// Returns a human-readable summary of the stats.
     #[must_use]
@@ -98,9 +96,7 @@ pub struct QueryLimits {
 impl QueryLimits {
     /// Create a new `QueryLimits` with no limits set.
     #[must_use]
-    pub fn none() -> Self {
-        Self::default()
-    }
+    pub fn none() -> Self { Self::default() }
 
     /// Set the maximum memory limit in bytes.
     #[must_use]
@@ -111,9 +107,7 @@ impl QueryLimits {
 
     /// Set the maximum memory limit using human-readable units.
     #[must_use]
-    pub fn with_max_memory_mb(self, mb: usize) -> Self {
-        self.with_max_memory(mb * 1024 * 1024)
-    }
+    pub fn with_max_memory_mb(self, mb: usize) -> Self { self.with_max_memory(mb * 1024 * 1024) }
 
     /// Set the maximum memory limit using human-readable units.
     #[must_use]
@@ -145,20 +139,20 @@ impl QueryLimits {
 /// Internal state for tracking limits during streaming.
 #[derive(Debug, Default)]
 struct LimitState {
-    total_rows: u64,
-    total_batches: u64,
-    total_memory: usize,
-    truncated: bool,
+    total_rows:        u64,
+    total_batches:     u64,
+    total_memory:      usize,
+    truncated:         bool,
     truncation_reason: Option<TruncationReason>,
 }
 
 impl LimitState {
     fn to_stats(&self) -> QueryStats {
         QueryStats {
-            rows_returned: self.total_rows,
-            batches_returned: self.total_batches,
-            memory_bytes: self.total_memory,
-            truncated: self.truncated,
+            rows_returned:     self.total_rows,
+            batches_returned:  self.total_batches,
+            memory_bytes:      self.total_memory,
+            truncated:         self.truncated,
             truncation_reason: self.truncation_reason,
         }
     }
@@ -171,9 +165,9 @@ impl LimitState {
 #[pin_project]
 pub struct LimitedStream<S> {
     #[pin]
-    inner: S,
-    limits: QueryLimits,
-    state: LimitState,
+    inner:   S,
+    limits:  QueryLimits,
+    state:   LimitState,
     /// Whether we've already stopped due to limits
     stopped: bool,
 }
@@ -188,9 +182,7 @@ where
     }
 
     /// Get the current statistics (can be called during or after streaming).
-    pub fn stats(&self) -> QueryStats {
-        self.state.to_stats()
-    }
+    pub fn stats(&self) -> QueryStats { self.state.to_stats() }
 }
 
 impl<S> Stream for LimitedStream<S>
@@ -278,14 +270,10 @@ where
     ///
     /// This can be called at any time, including during streaming.
     /// The stats will reflect all batches received so far.
-    pub fn stats(&self) -> QueryStats {
-        self.stream.stats()
-    }
+    pub fn stats(&self) -> QueryStats { self.stream.stats() }
 
     /// Returns true if results were truncated.
-    pub fn is_truncated(&self) -> bool {
-        self.stream.state.truncated
-    }
+    pub fn is_truncated(&self) -> bool { self.stream.state.truncated }
 
     /// Returns the truncation reason if results were truncated.
     pub fn truncation_reason(&self) -> Option<TruncationReason> {
@@ -422,10 +410,10 @@ mod tests {
     #[tokio::test]
     async fn test_stats_summary() {
         let stats = QueryStats {
-            rows_returned: 1000,
-            batches_returned: 5,
-            memory_bytes: 8192,
-            truncated: true,
+            rows_returned:     1000,
+            batches_returned:  5,
+            memory_bytes:      8192,
+            truncated:         true,
             truncation_reason: Some(TruncationReason::RowLimit),
         };
 

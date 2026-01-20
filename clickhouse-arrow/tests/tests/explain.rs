@@ -374,18 +374,15 @@ fn simple_batch() -> arrow::record_batch::RecordBatch {
     use arrow::record_batch::RecordBatch;
 
     let schema = simple_schema();
-    RecordBatch::try_new(
-        schema,
-        vec![
-            Arc::new(Int32Array::from(vec![1, 2, 3, 4, 5])),
-            Arc::new(StringArray::from(vec![
-                Some("alice"),
-                Some("bob"),
-                Some("charlie"),
-                None,
-                Some("eve"),
-            ])),
-        ],
-    )
+    RecordBatch::try_new(schema, vec![
+        Arc::new(Int32Array::from(vec![1, 2, 3, 4, 5])),
+        Arc::new(StringArray::from(vec![
+            Some("alice"),
+            Some("bob"),
+            Some("charlie"),
+            None,
+            Some("eve"),
+        ])),
+    ])
     .unwrap()
 }

@@ -34,9 +34,7 @@ static RUNTIME: Lazy<Runtime> = Lazy::new(|| {
 ///
 /// This is the primary bridge between async Rust code and sync Python calls.
 /// Uses the global runtime to execute the future.
-pub(crate) fn block_on<F: Future>(future: F) -> F::Output {
-    RUNTIME.block_on(future)
-}
+pub(crate) fn block_on<F: Future>(future: F) -> F::Output { RUNTIME.block_on(future) }
 
 #[cfg(test)]
 mod tests {

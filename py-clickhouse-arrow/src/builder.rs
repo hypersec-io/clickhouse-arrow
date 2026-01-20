@@ -22,9 +22,8 @@
 //! )
 //! ```
 
-use pyo3::prelude::*;
-
 use clickhouse_arrow::prelude::{ClientBuilder as RustClientBuilder, CompressionMethod};
+use pyo3::prelude::*;
 
 use crate::client::Client;
 use crate::error::to_py_result;
@@ -48,9 +47,7 @@ pub struct PyClientBuilder {
 impl PyClientBuilder {
     /// Create a new ClientBuilder with default configuration.
     #[new]
-    fn new() -> Self {
-        Self { inner: RustClientBuilder::new() }
-    }
+    fn new() -> Self { Self { inner: RustClientBuilder::new() } }
 
     /// Set the ClickHouse server endpoint (host:port).
     ///
@@ -192,7 +189,5 @@ impl PyClientBuilder {
 }
 
 impl Default for PyClientBuilder {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }

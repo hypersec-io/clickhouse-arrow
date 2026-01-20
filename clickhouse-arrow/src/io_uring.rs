@@ -51,9 +51,7 @@ static IOURING_AVAILABLE: OnceLock<bool> = OnceLock::new();
 /// }
 /// ```
 #[must_use]
-pub fn is_iouring_available() -> bool {
-    *IOURING_AVAILABLE.get_or_init(detect_iouring_support)
-}
+pub fn is_iouring_available() -> bool { *IOURING_AVAILABLE.get_or_init(detect_iouring_support) }
 
 /// Perform the actual io_uring detection.
 fn detect_iouring_support() -> bool {
@@ -135,29 +133,29 @@ fn probe_iouring() -> bool {
     // Minimal io_uring_params struct
     #[repr(C)]
     struct IoUringParams {
-        sq_entries: u32,
-        cq_entries: u32,
-        flags: u32,
-        sq_thread_cpu: u32,
+        sq_entries:     u32,
+        cq_entries:     u32,
+        flags:          u32,
+        sq_thread_cpu:  u32,
         sq_thread_idle: u32,
-        features: u32,
-        wq_fd: u32,
-        resv: [u32; 3],
-        sq_off: [u64; 10],
-        cq_off: [u64; 10],
+        features:       u32,
+        wq_fd:          u32,
+        resv:           [u32; 3],
+        sq_off:         [u64; 10],
+        cq_off:         [u64; 10],
     }
 
     let mut params = IoUringParams {
-        sq_entries: 0,
-        cq_entries: 0,
-        flags: 0,
-        sq_thread_cpu: 0,
+        sq_entries:     0,
+        cq_entries:     0,
+        flags:          0,
+        sq_thread_cpu:  0,
         sq_thread_idle: 0,
-        features: 0,
-        wq_fd: 0,
-        resv: [0; 3],
-        sq_off: [0; 10],
-        cq_off: [0; 10],
+        features:       0,
+        wq_fd:          0,
+        resv:           [0; 3],
+        sq_off:         [0; 10],
+        cq_off:         [0; 10],
     };
 
     // SAFETY: We're making a syscall with valid parameters

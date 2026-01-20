@@ -211,31 +211,22 @@ pub async fn test_http_insert_batches(ch: Arc<ClickHouseContainer>) {
     // Create multiple batches
     let schema = test_schema();
 
-    let batch1 = RecordBatch::try_new(
-        Arc::clone(&schema),
-        vec![
-            Arc::new(Int64Array::from(vec![1, 2, 3])),
-            Arc::new(StringArray::from(vec![Some("A"), Some("B"), Some("C")])),
-        ],
-    )
+    let batch1 = RecordBatch::try_new(Arc::clone(&schema), vec![
+        Arc::new(Int64Array::from(vec![1, 2, 3])),
+        Arc::new(StringArray::from(vec![Some("A"), Some("B"), Some("C")])),
+    ])
     .unwrap();
 
-    let batch2 = RecordBatch::try_new(
-        Arc::clone(&schema),
-        vec![
-            Arc::new(Int64Array::from(vec![4, 5, 6])),
-            Arc::new(StringArray::from(vec![Some("D"), None, Some("F")])),
-        ],
-    )
+    let batch2 = RecordBatch::try_new(Arc::clone(&schema), vec![
+        Arc::new(Int64Array::from(vec![4, 5, 6])),
+        Arc::new(StringArray::from(vec![Some("D"), None, Some("F")])),
+    ])
     .unwrap();
 
-    let batch3 = RecordBatch::try_new(
-        Arc::clone(&schema),
-        vec![
-            Arc::new(Int64Array::from(vec![7, 8, 9, 10])),
-            Arc::new(StringArray::from(vec![Some("G"), Some("H"), Some("I"), Some("J")])),
-        ],
-    )
+    let batch3 = RecordBatch::try_new(Arc::clone(&schema), vec![
+        Arc::new(Int64Array::from(vec![7, 8, 9, 10])),
+        Arc::new(StringArray::from(vec![Some("G"), Some("H"), Some("I"), Some("J")])),
+    ])
     .unwrap();
 
     // Insert all batches at once
@@ -318,14 +309,11 @@ pub async fn test_http_large_data(ch: Arc<ClickHouseContainer>) {
         Field::new("text", DataType::Utf8, false),
     ]));
 
-    let batch = RecordBatch::try_new(
-        schema,
-        vec![
-            Arc::new(Int64Array::from(ids)),
-            Arc::new(Float64Array::from(values)),
-            Arc::new(StringArray::from(texts.iter().map(String::as_str).collect::<Vec<_>>())),
-        ],
-    )
+    let batch = RecordBatch::try_new(schema, vec![
+        Arc::new(Int64Array::from(ids)),
+        Arc::new(Float64Array::from(values)),
+        Arc::new(StringArray::from(texts.iter().map(String::as_str).collect::<Vec<_>>())),
+    ])
     .unwrap();
 
     // Insert large batch

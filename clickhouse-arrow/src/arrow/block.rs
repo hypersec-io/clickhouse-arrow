@@ -197,6 +197,7 @@ impl ProtocolData<RecordBatch, ArrowDeserializerState> for RecordBatch {
         Ok(())
     }
 
+    #[allow(clippy::too_many_lines)]
     #[instrument(level = "trace", name = "clickhouse.deserialize.arrow" skip_all)]
     async fn read_async<R: ClickHouseRead>(
         reader: &mut R,
@@ -322,7 +323,7 @@ impl ProtocolData<RecordBatch, ArrowDeserializerState> for RecordBatch {
                         .deserialize_arrow_async(builder, reader, dt, sparse_rows, &[], row_buffer)
                         .await
                         .inspect_err(|error| {
-                            error!(?error, ?field, "col {i} sparse deserialize")
+                            error!(?error, ?field, "col {i} sparse deserialize");
                         })?;
                     // eprintln!("[DEBUG] Read sparse array for '{}', len={}", field.name(),
                     // sparse_array.len());
@@ -459,7 +460,7 @@ impl ProtocolData<RecordBatch, ArrowDeserializerState> for RecordBatch {
                     let sparse_array = type_hint
                         .deserialize_arrow(builder, reader, dt, sparse_rows, &[], &mut deser.buffer)
                         .inspect_err(|error| {
-                            error!(?error, ?type_hint, ?field, "sparse deserialize {i}")
+                            error!(?error, ?type_hint, ?field, "sparse deserialize {i}");
                         })?;
 
                     // Expand sparse array to full size with defaults

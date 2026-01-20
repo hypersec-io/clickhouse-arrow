@@ -95,6 +95,7 @@ pub(crate) trait ClickHouseArrowSerializer {
 /// - Propagates errors from sub-modules (e.g., `Io` for write failures, `ArrowSerialize` for type
 ///   mismatches).
 impl ClickHouseArrowSerializer for Type {
+    #[allow(clippy::too_many_lines)]
     async fn serialize_async<W: ClickHouseWrite>(
         &self,
         writer: &mut W,

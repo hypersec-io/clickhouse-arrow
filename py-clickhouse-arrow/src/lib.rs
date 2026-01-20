@@ -2,6 +2,8 @@
 //!
 //! Native TCP protocol w/ Arrow integration. Sync API for data science workflows.
 //! Follows the Polars monorepo model (py-polars alongside polars crate).
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::borrow_as_ptr)]
 
 mod arrow_ffi;
 mod builder;

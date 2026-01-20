@@ -13,15 +13,15 @@
 //! async code synchronously from Python.
 
 use std::future::Future;
+use std::sync::LazyLock;
 
-use once_cell::sync::Lazy;
 use tokio::runtime::Runtime;
 
 /// Global Tokio runtime for executing async operations.
 ///
 /// Lazily initialised on first use, persists for module lifetime.
 /// Uses a multi-threaded scheduler with 4 worker threads.
-static RUNTIME: Lazy<Runtime> = Lazy::new(|| {
+static RUNTIME: LazyLock<Runtime> = LazyLock::new(|| {
     tokio::runtime::Builder::new_multi_thread()
         .worker_threads(4)
         .enable_all()

@@ -78,8 +78,8 @@ pub(crate) fn record_batch_from_pyarrow(
     let mut ffi_schema = FFI_ArrowSchema::empty();
 
     // Get raw pointers as integers for PyArrow
-    let array_ptr = &mut ffi_array as *mut FFI_ArrowArray as usize;
-    let schema_ptr = &mut ffi_schema as *mut FFI_ArrowSchema as usize;
+    let array_ptr = std::ptr::from_mut::<FFI_ArrowArray>(&mut ffi_array) as usize;
+    let schema_ptr = std::ptr::from_mut::<FFI_ArrowSchema>(&mut ffi_schema) as usize;
 
     // Call PyArrow's _export_to_c(array_ptr, schema_ptr)
     drop(obj.call_method1("_export_to_c", (array_ptr, schema_ptr))?);

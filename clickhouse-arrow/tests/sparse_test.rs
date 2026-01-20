@@ -2,6 +2,13 @@
 //!
 //! Sparse is a ClickHouse optimisation for columns w/ many defaults – stores only
 //! non-default values + their positions. MergeTree tables primarily.
+// Tests are verbose by design – disable pedantic lints
+#![allow(clippy::pedantic)]
+#![allow(clippy::unnecessary_lazy_evaluations)]
+#![allow(clippy::unnecessary_cast)]
+#![allow(clippy::manual_range_contains)]
+#![allow(unused_crate_dependencies)]
+#![allow(trivial_numeric_casts)]
 
 use arrow::array::{Array, AsArray};
 use clickhouse_arrow::prelude::*;

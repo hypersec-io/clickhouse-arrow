@@ -84,6 +84,7 @@ const SMALL_DICT_MASK_THRESHOLD: usize = 1024;
 /// assert_eq!(values, &StringArray::from(vec!["a", "b"]));
 /// ```
 #[expect(clippy::cast_possible_truncation)]
+#[allow(clippy::too_many_lines)]
 pub(crate) async fn deserialize_async<R: ClickHouseRead>(
     inner: &Type,
     builder: &mut TypedBuilder,
@@ -227,6 +228,7 @@ pub(crate) async fn deserialize_async<R: ClickHouseRead>(
 }
 
 #[allow(dead_code)] // TODO: remove once synchronous Arrow path is fully retired
+#[allow(clippy::too_many_lines)]
 pub(crate) fn deserialize<R: ClickHouseBytesRead>(
     builder: &mut LowCardinalityBuilder,
     reader: &mut R,

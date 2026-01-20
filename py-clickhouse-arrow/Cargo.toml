@@ -18,7 +18,6 @@ clickhouse-arrow = { path = "../clickhouse-arrow", default-features = false, fea
 pyo3 = { version = "0.23", features = ["extension-module", "abi3-py39"] }
 arrow = { version = "57", default-features = false, features = ["ffi"] }
 tokio = { version = "1", features = ["rt-multi-thread", "sync"] }
-once_cell = "1"
 futures-util = { version = "0.3", default-features = false }
 thiserror = "2"
 

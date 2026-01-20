@@ -33,6 +33,7 @@ pub(crate) struct SparseDeserializeState {
 ///
 /// Must loop until END_OF_GRANULE_FLAG – can't stop early even if we have enough
 /// rows, or the stream will be misaligned for the next column.
+#[allow(clippy::cast_possible_truncation)] // row counts fit in usize
 pub(crate) async fn read_sparse_offsets<R: ClickHouseRead>(
     reader: &mut R,
     num_rows: usize,
@@ -92,6 +93,8 @@ pub(crate) async fn read_sparse_offsets<R: ClickHouseRead>(
 }
 
 /// Sync version of read_sparse_offsets for bytes::Buf readers.
+#[allow(dead_code)]
+#[allow(clippy::cast_possible_truncation)] // row counts fit in usize
 pub(crate) fn read_sparse_offsets_sync<R: crate::io::ClickHouseBytesRead>(
     reader: &mut R,
     num_rows: usize,
@@ -202,8 +205,7 @@ pub(crate) fn expand_sparse_array(
         }
         _ => {
             return Err(crate::Error::Unimplemented(format!(
-                "Sparse expansion not implemented for type: {:?}",
-                data_type
+                "Sparse expansion not implemented for type: {data_type:?}"
             )));
         }
     };
@@ -316,6 +318,7 @@ fn expand_boolean(sparse_array: &ArrayRef, offsets: &[usize], total_rows: usize)
     Arc::new(builder.finish())
 }
 
+#[allow(clippy::cast_sign_loss)] // size is always positive from Arrow schema
 fn expand_fixed_size_binary(
     sparse_array: &ArrayRef,
     offsets: &[usize],

@@ -486,15 +486,24 @@ impl PooledBuffer {
     #[inline]
     pub fn with_capacity(capacity: usize) -> Self { Self { buf: Some(BUFFER_POOL.get(capacity)) } }
 
-    /// Get mutable access to the underlying buffer. Panics if already taken.
+    /// Get mutable access to the underlying buffer.
+    ///
+    /// # Panics
+    /// Panics if the buffer has already been taken.
     #[inline]
     pub fn buffer_mut(&mut self) -> &mut Vec<u8> { self.buf.as_mut().unwrap() }
 
-    /// Get immutable access. Panics if already taken.
+    /// Get immutable access.
+    ///
+    /// # Panics
+    /// Panics if the buffer has already been taken.
     #[inline]
     pub fn buffer(&self) -> &Vec<u8> { self.buf.as_ref().unwrap() }
 
-    /// Take ownership of the buffer (won't be returned to pool). Panics if already taken.
+    /// Take ownership of the buffer (won't be returned to pool).
+    ///
+    /// # Panics
+    /// Panics if the buffer has already been taken.
     #[inline]
     pub fn take(mut self) -> Vec<u8> { self.buf.take().unwrap() }
 }

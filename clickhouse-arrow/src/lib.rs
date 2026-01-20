@@ -1,3 +1,5 @@
+// Disable overzealous doc_markdown lint – "ClickHouse" is a proper noun, not code
+#![allow(clippy::doc_markdown)]
 //! # 🛰️ `ClickHouse` *Native Protocol* Rust Client w/ Arrow Compatibility
 //!
 //! `ClickHouse` access in rust over `ClickHouse`'s native protocol.

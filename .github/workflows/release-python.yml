@@ -1,3 +1,9 @@
+# Release Python workflow for clickarrow
+#
+# Based on the excellent Polars release workflow:
+# https://github.com/pola-rs/polars/blob/main/.github/workflows/release-python.yml
+# Thank you to the Polars team for their outstanding work!
+
 name: Release Python
 
 on:
@@ -6,134 +12,159 @@ on:
       - "py-v*"  # e.g., py-v0.1.0
   workflow_dispatch:
     inputs:
-      dry_run:
-        description: "Build wheels without publishing to PyPI"
-        default: true
-        required: false
-        type: boolean
-      version:
-        description: "Version to release (e.g., 0.1.0)"
-        required: false
+      # Latest commit to include with the release. If omitted, use the latest commit on the main branch.
+      sha:
+        description: Commit SHA
         type: string
+      # Create the sdist and build the wheels, but do not publish to PyPI / GitHub.
+      dry-run:
+        description: Dry run
+        type: boolean
+        default: true
 
-permissions:
-  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
-  CARGO_TERM_COLOR: always
-  RUST_BACKTRACE: 1
-  MATURIN_VERSION: "1.8.3"
+  PYTHON_VERSION: '3.12'
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
+  RUSTUP_MAX_RETRIES: 10
+  MATURIN_VERSION: '1.8.3'
   PACKAGE_NAME: clickarrow
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   # Build source distribution
-  sdist:
+  create-sdist:
     name: Build sdist
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha }}
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install maturin
-        run: pip install maturin==${{ env.MATURIN_VERSION }}
-
-      - name: Build sdist
-        run: |
-          cd py-clickhouse-arrow
-          maturin sdist --out dist
+      - name: Create source distribution
+        uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: --manifest-path py-clickhouse-arrow/Cargo.toml --out dist
+          maturin-version: ${{ env.MATURIN_VERSION }}
 
       - name: Upload sdist
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-sdist
-          path: py-clickhouse-arrow/dist/*.tar.gz
+          name: sdist
+          path: dist/*.tar.gz
 
   # Build wheels for multiple platforms
-  wheels:
-    name: Build wheels (${{ matrix.target }})
+  build-wheels:
+    name: Build wheels (${{ matrix.job_config }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
           # Linux x86_64
-          - os: ubuntu-latest
+          - job_config: linux-x64
+            os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            manylinux: auto
 
           # Linux aarch64
-          - os: ubuntu-latest
+          - job_config: linux-arm64
+            os: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
-            manylinux: auto
 
-          # macOS x86_64
-          - os: macos-13
+          # Linux musl x86_64 (Alpine)
+          - job_config: linux-musl-x64
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+
+          # macOS x86_64 (Intel)
+          - job_config: macos-x64
+            os: macos-13
             target: x86_64-apple-darwin
-            manylinux: off
 
-          # macOS ARM64
-          - os: macos-14
+          # macOS aarch64 (Apple Silicon)
+          - job_config: macos-arm64
+            os: macos-14
             target: aarch64-apple-darwin
-            manylinux: off
 
           # Windows x86_64
-          - os: windows-latest
+          - job_config: win-x64
+            os: windows-latest
             target: x86_64-pc-windows-msvc
-            manylinux: off
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
+          ref: ${{ inputs.sha }}
+
+      # Avoid potential out-of-memory errors on Linux
+      - name: Set swap space for Linux
+        if: runner.os == 'Linux'
+        uses: pierotofy/set-swap-space@master
+        with:
+          swap-size-gb: 10
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install maturin
-        run: pip install maturin==${{ env.MATURIN_VERSION }}
-
-      # Linux cross-compilation setup
-      - name: Install cross-compilation tools (Linux ARM64)
+      - name: Set jemalloc page size for aarch64 Linux
         if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu
+        run: echo "JEMALLOC_SYS_WITH_LG_PAGE=16" >> $GITHUB_ENV
 
-      - name: Build wheels
+      - name: Build wheel
         uses: PyO3/maturin-action@v1
         with:
+          command: build
           target: ${{ matrix.target }}
-          manylinux: ${{ matrix.manylinux }}
-          args: --release --out dist --manifest-path py-clickhouse-arrow/Cargo.toml
+          args: --release --manifest-path py-clickhouse-arrow/Cargo.toml --out dist
+          manylinux: auto
+          maturin-version: ${{ env.MATURIN_VERSION }}
           sccache: 'true'
 
-      - name: Upload wheels
+      - name: Test wheel
+        # Skip musl targets (missing on standard ubuntu images)
+        if: contains(matrix.target, '-musl') == false
+        run: |
+          pip install --force-reinstall --verbose dist/*.whl
+          python -c "import clickhouse_arrow; print(f'clickarrow {clickhouse_arrow.__version__}')"
+
+      - name: Upload wheel
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.target }}
+          name: wheel-${{ matrix.job_config }}
           path: dist/*.whl
 
   # Publish to PyPI
-  publish:
+  publish-to-pypi:
     name: Publish to PyPI
-    needs: [sdist, wheels]
+    needs: [create-sdist, build-wheels]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || inputs.dry_run == false
+    # Only publish on tag push or when dry-run is false
+    if: github.event_name == 'push' || inputs.dry-run == false
     environment:
-      name: pypi
-      url: https://pypi.org/project/clickarrow/
+      name: release-python
+      url: https://pypi.org/project/${{ env.PACKAGE_NAME }}
+    permissions:
+      id-token: write  # For PyPI trusted publishing (OIDC)
+
     steps:
-      - name: Download all artifacts
+      - name: Download sdists and wheels
         uses: actions/download-artifact@v4
         with:
-          pattern: wheels-*
           path: dist
           merge-multiple: true
 
@@ -144,6 +175,50 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
+          # Uses OIDC trusted publishing if available, falls back to API key
           password: ${{ secrets.PYPI_API_KEY }}
           skip-existing: true
           verbose: true
+
+  # Create GitHub release
+  publish-to-github:
+    name: Create GitHub Release
+    needs: [publish-to-pypi]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha }}
+
+      - name: Get version from pyproject.toml
+        id: version
+        run: |
+          VERSION=$(grep -m 1 'version = ' py-clickhouse-arrow/pyproject.toml | sed 's/.*"\(.*\)".*/\1/')
+          if [[ "$VERSION" == *"-"* ]]; then
+            IS_PRERELEASE=true
+          else
+            IS_PRERELEASE=false
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
+          echo "Detected version: $VERSION (prerelease: $IS_PRERELEASE)"
+
+      - name: Download artifacts for release
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Python ${{ env.PACKAGE_NAME }} ${{ steps.version.outputs.version }}
+          tag_name: py-v${{ steps.version.outputs.version }}
+          prerelease: ${{ steps.version.outputs.is_prerelease }}
+          generate_release_notes: true
+          files: dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

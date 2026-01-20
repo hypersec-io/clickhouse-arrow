@@ -19,13 +19,13 @@ The core client library – native TCP protocol w/ Arrow integration:
 
 The `Row` derive macro for serde-like (de)serialisation of Rust structs to ClickHouse tables.
 
-### [`py-clickhouse-arrow`](./py-clickhouse-arrow)
+### [`clickarrow`](./py-clickhouse-arrow) (Python)
 
-Python bindings via PyO3/maturin. Sync API for data science workflows:
+Python bindings via PyO3/maturin (`pip install clickarrow`). Sync API for data science workflows:
 
 ```python
-import clickhouse_arrow
-client = clickhouse_arrow.connect("localhost:9000")
+import clickarrow
+client = clickarrow.connect("localhost:9000")
 batches = client.query("SELECT * FROM table")  # Returns PyArrow RecordBatches
 ```
 

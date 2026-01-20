@@ -3,7 +3,7 @@ requires = ["maturin>=1.5,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "clickhouse-arrow"
+name = "clickarrow"
 version = "0.1.0"
 description = "High-performance ClickHouse client with native protocol and Arrow integration"
 readme = "README.md"

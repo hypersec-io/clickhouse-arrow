@@ -1,0 +1,149 @@
+name: Release Python
+
+on:
+  push:
+    tags:
+      - "py-v*"  # e.g., py-v0.1.0
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build wheels without publishing to PyPI"
+        default: true
+        required: false
+        type: boolean
+      version:
+        description: "Version to release (e.g., 0.1.0)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write  # Required for trusted publishing to PyPI
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  MATURIN_VERSION: "1.8.3"
+  PACKAGE_NAME: clickarrow
+
+jobs:
+  # Build source distribution
+  sdist:
+    name: Build sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install maturin
+        run: pip install maturin==${{ env.MATURIN_VERSION }}
+
+      - name: Build sdist
+        run: |
+          cd py-clickhouse-arrow
+          maturin sdist --out dist
+
+      - name: Upload sdist
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-sdist
+          path: py-clickhouse-arrow/dist/*.tar.gz
+
+  # Build wheels for multiple platforms
+  wheels:
+    name: Build wheels (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux x86_64
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            manylinux: auto
+
+          # Linux aarch64
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            manylinux: auto
+
+          # macOS x86_64
+          - os: macos-13
+            target: x86_64-apple-darwin
+            manylinux: off
+
+          # macOS ARM64
+          - os: macos-14
+            target: aarch64-apple-darwin
+            manylinux: off
+
+          # Windows x86_64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            manylinux: off
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install maturin
+        run: pip install maturin==${{ env.MATURIN_VERSION }}
+
+      # Linux cross-compilation setup
+      - name: Install cross-compilation tools (Linux ARM64)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: ${{ matrix.manylinux }}
+          args: --release --out dist --manifest-path py-clickhouse-arrow/Cargo.toml
+          sccache: 'true'
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.target }}
+          path: dist/*.whl
+
+  # Publish to PyPI
+  publish:
+    name: Publish to PyPI
+    needs: [sdist, wheels]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || inputs.dry_run == false
+    environment:
+      name: pypi
+      url: https://pypi.org/project/clickarrow/
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          path: dist
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -la dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          skip-existing: true
+          verbose: true

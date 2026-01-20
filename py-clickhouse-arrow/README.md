@@ -10,12 +10,12 @@ This package follows the [Polars monorepo model](https://github.com/pola-rs/pola
 - **Natural version synchronisation** between packages
 - **Simpler CI/CD** with unified build and test pipelines
 
-The Rust crate implementing the Python bindings is called `py-clickhouse-arrow` to distinguish from the wrapped Rust crate `clickhouse-arrow`. However, the Python package is named `clickhouse-arrow`.
+The Rust crate implementing the Python bindings is called `py-clickhouse-arrow` to distinguish from the wrapped Rust crate `clickhouse-arrow`. The Python package is named `clickarrow` (since `clickhouse-arrow` is already taken on PyPI by a different HTTP-based implementation).
 
 ## Installation
 
 ```bash
-pip install clickhouse-arrow
+pip install clickarrow
 ```
 
 ## Quick Start
@@ -120,9 +120,9 @@ All exceptions inherit from `ClickHouseError`:
 
 ### Client Methods
 
-- `query(sql, qid=None)` → `List[pyarrow.RecordBatch]`
-- `insert(sql, batch, qid=None)` → `None`
-- `execute(sql, qid=None)` → `None`
+- `query(sql)` → `List[pyarrow.RecordBatch]`
+- `insert(sql, batch)` → `None`
+- `execute(sql)` → `None`
 - `health_check(ping=False)` → `None`
 - `shutdown()` → `None`
 

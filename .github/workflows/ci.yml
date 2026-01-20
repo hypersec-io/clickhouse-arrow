@@ -26,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       code: ${{ steps.changes.outputs.code }}
+      python: ${{ steps.changes.outputs.python }}
     steps:
     - uses: actions/checkout@v4
     - uses: dorny/paths-filter@master
@@ -43,9 +44,13 @@ jobs:
             - '!LICENSE'
             - '!.github/workflows/pr.yml'
             - '!.github/workflows/release.yml'
+            - '!.github/workflows/release-python.yml'
             - '!.github/workflows/security.yml'
             - '!.github/dependabot.yml'
             - '!.github/labeler.yml'
+          python:
+            - 'py-clickhouse-arrow/**'
+            - 'clickhouse-arrow/src/**'
 
   check:
     name: Check
@@ -117,10 +122,45 @@ jobs:
         fail_ci_if_error: false
         disable_telem: true
 
+  # Build Python wheels (verify they build, don't publish)
+  python-wheels:
+    name: Python Wheels
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.python == 'true'
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install maturin
+      run: pip install maturin>=1.5
+
+    - name: Build wheel (Linux x86_64)
+      uses: PyO3/maturin-action@v1
+      with:
+        target: x86_64-unknown-linux-gnu
+        manylinux: auto
+        args: --release --out dist --manifest-path py-clickhouse-arrow/Cargo.toml
+
+    - name: List built wheels
+      run: ls -la dist/
+
+    - name: Test wheel import
+      run: |
+        pip install dist/*.whl
+        python -c "import clickhouse_arrow; print(f'clickarrow {clickhouse_arrow.__version__}')"
+
   # Summary job that branch protection can depend on
   ci-success:
     name: CI Success
-    needs: [changes, check, coverage]
+    needs: [changes, check, coverage, python-wheels]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -136,4 +176,11 @@ jobs:
             echo "One or more jobs failed"
             exit 1
           fi
+
+          # Python wheels are optional (only run when python files change)
+          if [[ "${{ needs.changes.outputs.python }}" == "true" ]] && [[ "${{ needs.python-wheels.result }}" != "success" ]]; then
+            echo "Python wheel build failed"
+            exit 1
+          fi
+
           echo "All CI jobs passed successfully!"

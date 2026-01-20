@@ -1,4 +1,4 @@
-# 🛰️ ClickHouse Arrow Client for Rust
+# ClickHouse Arrow Client for Rust
 
 ## Crates
 
@@ -70,13 +70,13 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-clickhouse-arrow = "0.2.1"
+clickhouse-arrow = "0.4"
 
-# For derive macro support (on by default)
-clickhouse-arrow = { version = "0.1", features = ["derive"] }
+# With connection pooling
+clickhouse-arrow = { version = "0.4", features = ["pool"] }
 
-# For connection pooling
-clickhouse-arrow = { version = "0.1", features = ["pool"] }
+# HTTP transport only (no native TCP)
+clickhouse-arrow = { version = "0.4", features = ["http"] }
 ```
 
 ## Features
